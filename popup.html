@@ -31,11 +31,34 @@
       margin: 10px 0;
       text-align: left;
     }
-    #viewLogsBtn {
-      background-color: #2196F3;
+    #settingsContainer {
+      margin: 10px 0;
+      text-align: left;
     }
-    #viewLogsBtn:hover {
+    input[type="text"], input[type="password"] {
+      width: 95%;
+      padding: 5px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+    }
+    label {
+      font-weight: bold;
+      font-size: 12px;
+      display: block;
+      margin-top: 10px;
+    }
+    #saveSettingsBtn {
+      background-color: #2196F3;
+      margin-top: 10px;
+    }
+    #saveSettingsBtn:hover {
       background-color: #1976D2;
+    }
+    #statusMessage {
+      font-size: 11px;
+      margin-top: 5px;
+      text-align: center;
     }
   </style>
 </head>
@@ -43,7 +66,16 @@
   <div id="timer">25:00</div>
   <button id="startBtn">Start</button>
   <button id="resetBtn">Reset</button>
-  <button id="viewLogsBtn">View Logs</button>
+  
+  <div id="settingsContainer">
+    <label for="webAppUrl">Google Sheets Web App URL:</label>
+    <input type="text" id="webAppUrl" placeholder="Paste URL from Google Apps Script">
+    <label for="secretKey">Secret Key:</label>
+    <input type="password" id="secretKey" placeholder="Your secret password">
+    <button id="saveSettingsBtn">Save Settings</button>
+    <div id="statusMessage"></div>
+  </div>
+  
   <div id="autoRestartContainer">
     <label>
       <input type="checkbox" id="autoRestartCheckbox" checked>

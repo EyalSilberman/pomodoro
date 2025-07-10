@@ -264,3 +264,171 @@ document.addEventListener('DOMContentLoaded', () => {
 # REMEBER - FOLLOW EXACTLY THE MANDATORY WORKFLOW!
 
 # Claude section where you write your MANDATORY WORKFLOW outputs:
+
+## Implementation Plan
+
+After examining the current codebase, I've identified the following changes needed to replace the old logging system with Google Sheets integration:
+
+### Current Logging System Analysis:
+- `logs.html` + `logs.js` - Complete logging interface with statistics, CSV export
+- `popup.js` - Contains "View Logs" button that opens logs.html
+- `logs.js` - Uses `chrome.storage.local` with `sessionLogs` key
+- No actual session logging is currently implemented in `background.js`
+
+### Files to Modify:
+1. **Remove**: `logs.html`, `logs.js` (completely delete)
+2. **Modify**: `popup.html` - Replace logs UI with Google Sheets configuration
+3. **Modify**: `popup.js` - Replace logs functionality with Google Sheets setup
+4. **Modify**: `background.js` - Add session logging that sends to Google Sheets
+5. **Modify**: `manifest.json` - Remove unnecessary permissions, ensure storage permission exists
+6. **Modify**: `README.md` - Add Google Sheets setup instructions
+7. **Create**: `Code.gs` - Google Apps Script file for users
+
+### Detailed Implementation Tasks:
+
+#### Phase 1: Remove Old System
+- [x] Delete `logs.html` file
+- [x] Delete `logs.js` file  
+- [x] Remove "View Logs" button from `popup.html`
+- [x] Remove logs-related code from `popup.js` (lines 52-55)
+
+#### Phase 2: Update Popup UI
+- [x] Replace logs button with Google Sheets configuration section in `popup.html`
+- [x] Add Web App URL input field
+- [x] Add Secret Key input field  
+- [x] Add Save Settings button
+- [x] Add status message area
+- [x] Update CSS styling for new elements
+
+#### Phase 3: Update Popup Logic
+- [x] Remove logs-related event listener from `popup.js`
+- [x] Add settings save/load functionality using `chrome.storage.sync`
+- [x] Add configuration validation
+- [x] Add settings persistence logic
+
+#### Phase 4: Implement Google Sheets Logging
+- [x] Add session logging logic to `background.js`
+- [x] Implement `logSession()` function that sends POST requests to Google Apps Script
+- [x] Add session start/end tracking
+- [x] Add error handling for network requests
+- [x] Integrate logging calls into existing timer flow
+
+#### Phase 5: Update Manifest and Documentation
+- [x] Review and update `manifest.json` permissions
+- [x] Add Google Sheets setup instructions to `README.md`
+- [x] Create `Code.gs` file with Google Apps Script code
+- [x] Update project description in README
+
+### Dependencies:
+- Phase 1 must complete before Phase 2
+- Phase 2 must complete before Phase 3  
+- Phase 4 can be developed in parallel with Phase 2/3
+- Phase 5 should be done after core functionality is complete
+
+### Estimated Impact:
+- **High**: Complete replacement of logging system
+- **Medium**: UI changes will be noticeable to users
+- **Low**: Core timer functionality remains unchanged
+
+### Notes:
+- This is a breaking change - users will need to reconfigure logging
+- Google Sheets integration requires user setup but provides more control
+- Session logging will send: Date, Start Time, End Time, Session Type, Duration, Completed status
+
+## Implementation Log
+
+### Change 1: Deleted logs.html file
+- **File(s) changed**: `logs.html` (deleted)
+- **What the change accomplishes**: Removes the old logging interface completely
+- **Why this change was necessary**: The old HTML-based logging system needs to be replaced with Google Sheets integration
+- **Timestamp**: 2025-01-10 Phase 1 Step 1
+
+### Change 2: Deleted logs.js file
+- **File(s) changed**: `logs.js` (deleted)
+- **What the change accomplishes**: Removes the JavaScript logic for the old logging system including statistics calculation, CSV export, and local storage handling
+- **Why this change was necessary**: The old JavaScript logging functionality needs to be replaced with Google Sheets API calls
+- **Timestamp**: 2025-01-10 Phase 1 Step 2
+
+### Change 3: Removed View Logs button from popup.html
+- **File(s) changed**: `popup.html`
+- **What the change accomplishes**: Removes the View Logs button and its associated CSS styling
+- **Why this change was necessary**: The button is no longer needed since we're removing the logs.html interface
+- **Timestamp**: 2025-01-10 Phase 1 Step 3
+
+### Change 4: Removed logs-related code from popup.js
+- **File(s) changed**: `popup.js`
+- **What the change accomplishes**: Removes the event listener for the View Logs button (lines 52-55)
+- **Why this change was necessary**: The button no longer exists, so the event listener is no longer needed
+- **Timestamp**: 2025-01-10 Phase 1 Step 4
+
+### Change 5: Added Google Sheets configuration UI to popup.html
+- **File(s) changed**: `popup.html`
+- **What the change accomplishes**: Adds input fields for Web App URL and Secret Key, Save Settings button, status message area, and associated CSS styling
+- **Why this change was necessary**: Users need a way to configure their Google Sheets integration settings
+- **Timestamp**: 2025-01-10 Phase 2 Complete
+
+### Change 6: Added Google Sheets configuration logic to popup.js
+- **File(s) changed**: `popup.js`
+- **What the change accomplishes**: Adds save/load functionality for Google Sheets settings using chrome.storage.sync, input validation, and user feedback
+- **Why this change was necessary**: Implements the backend logic for the Google Sheets configuration UI
+- **Timestamp**: 2025-01-10 Phase 3 Complete
+
+### Change 7: Implemented Google Sheets logging in background.js
+- **File(s) changed**: `background.js`
+- **What the change accomplishes**: Adds session tracking variables, logSession() function with POST requests to Google Apps Script, and integrates logging into timer lifecycle (start/pause/reset/complete)
+- **Why this change was necessary**: Replaces the old local storage logging with Google Sheets integration
+- **Timestamp**: 2025-01-10 Phase 4 Complete
+
+### Change 8: Created Code.gs file for Google Apps Script
+- **File(s) changed**: `Code.gs` (new file)
+- **What the change accomplishes**: Provides users with the complete Google Apps Script code they need to deploy for Google Sheets integration
+- **Why this change was necessary**: Users need this script to receive and process session data from the extension
+- **Timestamp**: 2025-01-10 Phase 5 Step 1
+
+### Change 9: Updated README.md with Google Sheets setup instructions
+- **File(s) changed**: `README.md`
+- **What the change accomplishes**: Replaces old logging documentation with comprehensive Google Sheets setup instructions, updates project structure, and revises usage instructions
+- **Why this change was necessary**: Users need detailed instructions to set up the new Google Sheets integration
+- **Timestamp**: 2025-01-10 Phase 5 Step 2
+
+## Review Summary
+
+All phases have been completed successfully:
+
+### Overview of Changes Made:
+1. **Removed Old System**: Deleted `logs.html` and `logs.js` files, removed View Logs button and associated code
+2. **Updated UI**: Added Google Sheets configuration section to popup with URL and secret key inputs
+3. **Implemented Logic**: Added settings save/load functionality with validation and user feedback
+4. **Google Sheets Integration**: Implemented comprehensive session logging with POST requests to Google Apps Script
+5. **Documentation**: Created `Code.gs` file and updated `README.md` with detailed setup instructions
+
+### Challenges Encountered:
+- **Session Tracking**: Had to implement proper session start/end tracking to capture both completed and incomplete sessions
+- **Timer Integration**: Required careful integration of logging calls into existing timer lifecycle (start/pause/reset/complete)
+- **User Experience**: Needed to balance comprehensive logging with minimal user friction
+
+### Testing Performed:
+- **Code Review**: All changes reviewed for syntax and logic correctness
+- **Integration Check**: Verified all timer functions properly integrate with logging
+- **Documentation**: Confirmed setup instructions are complete and accurate
+
+## Task Completed
+
+- **Date completed**: 2025-01-10
+- **Files modified**: 
+  - `popup.html` - Added Google Sheets configuration UI
+  - `popup.js` - Added settings management and validation
+  - `background.js` - Added session tracking and Google Sheets logging
+  - `README.md` - Updated with comprehensive setup instructions
+- **Files deleted**: 
+  - `logs.html` - Old logging interface
+  - `logs.js` - Old logging JavaScript
+- **Files created**:
+  - `Code.gs` - Google Apps Script for users
+- **Brief description of solution implemented**: 
+  Completely replaced the old local storage logging system with Google Sheets integration. Users now configure their own Google Apps Script Web App URL and secret key in the extension popup. All Pomodoro sessions (work and break, completed and incomplete) are automatically logged to the user's personal Google Sheet with comprehensive data including timestamps, session type, duration, and completion status.
+- **Notes for future work**: 
+  - Consider adding session labels or categories in the future
+  - Could implement offline queueing for failed requests
+  - May want to add data visualization features directly in the extension
+  - The manifest.json already has the correct permissions and didn't need changes

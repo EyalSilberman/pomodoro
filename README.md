@@ -27,10 +27,10 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 - ⚙️ Configurable auto-restart option
 
 ### Analytics & Logging
-- 📊 Comprehensive session logging
-- 📈 Statistical analysis of productivity
-- 📑 Exportable session data (CSV)
-- 📅 Historical session review
+- 📊 Google Sheets integration for session logging
+- 📈 Real-time data export to your personal spreadsheet
+- 🔐 Private and secure - data stays in your Google account
+- 📅 Comprehensive session tracking with timestamps
 
 ## Installation
 
@@ -49,6 +49,40 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 4. Click "Load unpacked"
 5. Select the extension directory
 
+## Google Sheets Integration Setup
+
+### How to Set Up Google Sheets Integration
+
+Follow these steps to connect the extension to your personal Google Sheet. This process gives you full control over your data and script.
+
+**Part A: Create and Deploy the Google Apps Script**
+
+1. **Go to Google Apps Script**: Open [script.google.com](https://script.google.com) and click **New project**.
+2. **Paste the Code**: Delete the default `function myFunction() {...}` and paste the entire contents of the `Code.gs` file from this repository.
+3. **Configure the Script**:
+   * Change the value of `SECRET_KEY` to a unique, private password of your choice.
+   * Find the ID of your Google Sheet. It's in the URL: `.../spreadsheets/d/THIS_IS_THE_ID/edit`. Paste this ID as the value for `SHEET_ID`.
+4. **Save the Project**: Click the floppy disk icon (Save project) and give it a name like "Pomodoro Timer Logger".
+5. **Deploy as a Web App**:
+   * Click the blue **Deploy** button in the top-right corner and select **New deployment**.
+   * Click the gear icon next to "Select type" and choose **Web app**.
+   * For "Execute as", select **Me**.
+   * For "Who has access", select **Anyone**. *(This is safe because we are using a `SECRET_KEY`)*.
+   * Click **Deploy**.
+6. **Authorize Permissions**:
+   * A popup will appear asking for authorization. Click **Authorize access**.
+   * Choose your Google Account.
+   * You may see a "Google hasn't verified this app" screen. This is normal. Click **Advanced**, then click **Go to [Your Script Name] (unsafe)**.
+   * On the final screen, review the permissions (it will ask to access your spreadsheets) and click **Allow**.
+7. **Copy the Web App URL**: After deploying, a new popup will show your **Web app URL**. Copy this URL. You will need it for the extension.
+
+**Part B: Configure the Chrome Extension**
+
+1. Open the Chrome Extension popup.
+2. Paste the **Web App URL** you just copied into the "Google Sheets Web App URL" input field.
+3. Enter the same **Secret Key** you created in the script into the "Secret Key" input field.
+4. Click **Save Settings**. You are now ready to log your time!
+
 ## Usage
 
 1. **Starting a Session**
@@ -61,15 +95,14 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
    - The break tab will close automatically after 5 minutes
    - If auto-restart is enabled, a new work session will begin
 
-3. **Viewing Statistics**
-   - Click "View Logs" in the popup
-   - See comprehensive statistics about your sessions
-   - Export data using the "Export to CSV" button
+3. **Session Logging**
+   - Sessions are automatically logged to your Google Sheet when completed
+   - Both completed and incomplete sessions are tracked
+   - Data includes: Date, Start Time, End Time, Session Type, Duration, Completion Status
 
 4. **Customization**
    - Toggle auto-restart functionality
-   - Access session history
-   - Export productivity data
+   - Configure Google Sheets integration in the popup
 
 ## Project Structure
 
@@ -81,8 +114,7 @@ pomodoro-chrome-extension/
 ├── background.js
 ├── break.html
 ├── break.js
-├── logs.html
-├── logs.js
+├── Code.gs              # Google Apps Script for users
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png

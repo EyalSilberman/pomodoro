@@ -2,6 +2,53 @@ let timer;
 let timeLeft;
 let isBreak = false;
 let autoRestart = true;
+let sessionStartTime;
+let sessionInitialTime;
+
+// Google Sheets logging function
+async function logSession(sessionType, startTime, endTime, duration, completed) {
+  try {
+    const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey']);
+    
+    if (!settings.webAppUrl || !settings.secretKey) {
+      console.log('Google Sheets not configured, skipping log');
+      return;
+    }
+    
+    const logData = [
+      new Date(startTime).toLocaleDateString(),
+      new Date(startTime).toLocaleTimeString(),
+      new Date(endTime).toLocaleTimeString(),
+      sessionType,
+      Math.round(duration / 60), // Duration in minutes
+      completed ? 'Yes' : 'No'
+    ];
+    
+    const response = await fetch(settings.webAppUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({
+        secret: settings.secretKey,
+        data: logData
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      console.log('Session logged successfully:', logData);
+    } else {
+      console.error('Failed to log session:', result.message);
+    }
+    
+  } catch (error) {
+    console.error('Error logging session:', error);
+  }
+}
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -48,6 +95,12 @@ function startTimer() {
     timeLeft = isBreak ? 300 : 1500; // 5 minutes or 25 minutes
   }
   
+  // Start session tracking
+  if (!sessionStartTime) {
+    sessionStartTime = Date.now();
+    sessionInitialTime = timeLeft;
+  }
+  
   updateTimerDisplay(timeLeft);
   
   timer = setInterval(() => {
@@ -58,16 +111,26 @@ function startTimer() {
       clearInterval(timer);
       timer = undefined;
       
+      // Log completed session
+      if (sessionStartTime) {
+        const endTime = Date.now();
+        const duration = sessionInitialTime; // Duration in seconds
+        const sessionType = isBreak ? 'Break' : 'Work';
+        logSession(sessionType, sessionStartTime, endTime, duration, true);
+      }
+      
       if (!isBreak) {
         // Work session ended, start break
         isBreak = true;
         timeLeft = 300; // 5 minutes
+        sessionStartTime = null; // Reset for next session
         createBreakTab();
         startTimer(); // Start break timer
       } else {
         // Break ended
         isBreak = false;
         timeLeft = 1500; // 25 minutes
+        sessionStartTime = null; // Reset for next session
         
         // Close break tab
         chrome.tabs.query({ url: chrome.runtime.getURL("break.html") }, (tabs) => {
@@ -90,12 +153,31 @@ function pauseTimer() {
     clearInterval(timer);
     timer = undefined;
     chrome.runtime.sendMessage({ isRunning: false });
+    
+    // Log incomplete session when paused
+    if (sessionStartTime) {
+      const endTime = Date.now();
+      const duration = sessionInitialTime - timeLeft; // Time actually worked
+      const sessionType = isBreak ? 'Break' : 'Work';
+      logSession(sessionType, sessionStartTime, endTime, duration, false);
+      sessionStartTime = null; // Reset session tracking
+    }
   }
 }
 
 function resetTimer() {
   clearInterval(timer);
   timer = undefined;
+  
+  // Log incomplete session when reset
+  if (sessionStartTime) {
+    const endTime = Date.now();
+    const duration = sessionInitialTime - timeLeft; // Time actually worked
+    const sessionType = isBreak ? 'Break' : 'Work';
+    logSession(sessionType, sessionStartTime, endTime, duration, false);
+    sessionStartTime = null; // Reset session tracking
+  }
+  
   isBreak = false;
   timeLeft = 1500;
   updateTimerDisplay(timeLeft);

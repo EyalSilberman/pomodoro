@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.storage.local.get(['autoRestart'], function(result) {
       document.getElementById('autoRestartCheckbox').checked = result.autoRestart !== false;
     });
+    
+    // Load saved Google Sheets settings
+    chrome.storage.sync.get(['webAppUrl', 'secretKey'], function(result) {
+      if (result.webAppUrl) {
+        document.getElementById('webAppUrl').value = result.webAppUrl;
+      }
+      if (result.secretKey) {
+        document.getElementById('secretKey').value = result.secretKey;
+      }
+    });
   });
   
   // Listen for timer updates from background
@@ -49,9 +59,24 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('startBtn').textContent = 'Start';
   });
   
-  // View logs button
-  document.getElementById('viewLogsBtn').addEventListener('click', () => {
-    chrome.tabs.create({ url: 'logs.html' });
+  
+  // Save Google Sheets settings
+  document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+    const webAppUrl = document.getElementById('webAppUrl').value.trim();
+    const secretKey = document.getElementById('secretKey').value.trim();
+    const statusMessage = document.getElementById('statusMessage');
+    
+    if (webAppUrl && secretKey) {
+      chrome.storage.sync.set({ webAppUrl: webAppUrl, secretKey: secretKey }, () => {
+        statusMessage.textContent = 'Settings saved!';
+        statusMessage.style.color = '#4CAF50';
+        setTimeout(() => statusMessage.textContent = '', 3000);
+      });
+    } else {
+      statusMessage.textContent = 'Please fill in both fields.';
+      statusMessage.style.color = '#FF4444';
+      setTimeout(() => statusMessage.textContent = '', 3000);
+    }
   });
   
   // Auto-restart checkbox
