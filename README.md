@@ -51,11 +51,41 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 
 ## Google Sheets Integration Setup
 
+### 🔒 About Permissions & Security
+
+**Don't worry about the permissions!** This integration is completely private and secure:
+
+- ✅ **No Third-Party Servers**: Your data goes directly from the extension to YOUR Google Sheet
+- ✅ **You Control Everything**: You deploy your own Google Apps Script in your Google account
+- ✅ **Private & Secure**: Only YOU have access to your script and data
+- ✅ **No External Services**: No data passes through our servers or any third-party
+- ✅ **Open Source**: All code is visible and auditable in this repository
+
+The permissions requested are only for YOUR script to write to YOUR spreadsheet - exactly like any other Google Sheets add-on you might use.
+
 ### How to Set Up Google Sheets Integration
 
 Follow these steps to connect the extension to your personal Google Sheet. This process gives you full control over your data and script.
 
-**Part A: Create and Deploy the Google Apps Script**
+**Part A: Create Your Google Sheet**
+
+1. **Create a New Google Sheet**: Go to [sheets.google.com](https://sheets.google.com) and create a new spreadsheet.
+2. **Name Your Sheet**: Rename it to "Pomodoro Logs" (or any name you prefer).
+3. **Set Up Headers**: In the first row, add these exact headers:
+
+| A1 | B1 | C1 | D1 | E1 | F1 |
+|---|---|---|---|---|---|
+| **session date** | **session start time** | **session end time** | **session type** | **session duration** | **session completed** |
+
+Your sheet should look like this:
+```
+A1: session date          B1: session start time    C1: session end time
+D1: session type          E1: session duration       F1: session completed
+```
+
+4. **Copy the Sheet ID**: From your sheet's URL (`https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`), copy the SHEET_ID part.
+
+**Part B: Create and Deploy the Google Apps Script**
 
 1. **Go to Google Apps Script**: Open [script.google.com](https://script.google.com) and click **New project**.
 2. **Paste the Code**: Delete the default `function myFunction() {...}` and paste the entire contents of the `Code.gs` file from this repository.
@@ -76,12 +106,17 @@ Follow these steps to connect the extension to your personal Google Sheet. This 
    * On the final screen, review the permissions (it will ask to access your spreadsheets) and click **Allow**.
 7. **Copy the Web App URL**: After deploying, a new popup will show your **Web app URL**. Copy this URL. You will need it for the extension.
 
-**Part B: Configure the Chrome Extension**
+**Part C: Configure the Chrome Extension**
 
-1. Open the Chrome Extension popup.
-2. Paste the **Web App URL** you just copied into the "Google Sheets Web App URL" input field.
-3. Enter the same **Secret Key** you created in the script into the "Secret Key" input field.
-4. Click **Save Settings**. You are now ready to log your time!
+1. **Open the Extension**: Click the Pomodoro Timer extension icon in your browser.
+2. **Setup Logging**: Click the "Setup Logging" button.
+3. **Enable Logging**: Check the "Enable Session Logging" checkbox.
+4. **Enter Details**:
+   - Paste the **Web App URL** you copied into the "Google Sheets Web App URL" field
+   - Enter the same **Secret Key** you created in the script
+5. **Save**: Click "Save Settings". 
+
+✅ **You're all set!** The extension will now automatically log your Pomodoro sessions to your Google Sheet. After saving, you'll see an "Edit Logs Settings" button for future changes.
 
 ## Usage
 
@@ -95,14 +130,16 @@ Follow these steps to connect the extension to your personal Google Sheet. This 
    - The break tab will close automatically after 5 minutes
    - If auto-restart is enabled, a new work session will begin
 
-3. **Session Logging**
-   - Sessions are automatically logged to your Google Sheet when completed
+3. **Session Logging** *(Optional)*
+   - Enable/disable logging anytime with the checkbox in settings
+   - When enabled, sessions are automatically logged to your Google Sheet
    - Both completed and incomplete sessions are tracked
-   - Data includes: Date, Start Time, End Time, Session Type, Duration, Completion Status
+   - Data logged: Date, Start Time, End Time, Session Type, Duration (minutes), Completion Status
 
 4. **Customization**
    - Toggle auto-restart functionality
-   - Configure Google Sheets integration in the popup
+   - Enable/disable session logging
+   - Edit Google Sheets integration settings anytime
 
 ## Project Structure
 

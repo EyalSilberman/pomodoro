@@ -31,9 +31,47 @@
       margin: 10px 0;
       text-align: left;
     }
+    #loggingContainer {
+      margin: 10px 0;
+      text-align: left;
+    }
+    #settingsToggle {
+      width: 100%;
+      background-color: #FF9800;
+      margin-bottom: 10px;
+    }
+    #settingsToggle:hover {
+      background-color: #F57C00;
+    }
+    #editSettingsBtn {
+      background-color: #FF9800;
+      margin-bottom: 10px;
+    }
+    #editSettingsBtn:hover {
+      background-color: #F57C00;
+    }
     #settingsContainer {
       margin: 10px 0;
       text-align: left;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    #settingsContainer.hidden {
+      display: none;
+    }
+    .hidden {
+      display: none;
+    }
+    #loggingConfigSection {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+    }
+    #loggingConfigSection.disabled {
+      opacity: 0.5;
+      pointer-events: none;
     }
     input[type="text"], input[type="password"] {
       width: 95%;
@@ -47,6 +85,11 @@
       font-size: 12px;
       display: block;
       margin-top: 10px;
+    }
+    .checkbox-label {
+      font-weight: normal;
+      font-size: 14px;
+      margin-top: 5px;
     }
     #saveSettingsBtn {
       background-color: #2196F3;
@@ -67,13 +110,23 @@
   <button id="startBtn">Start</button>
   <button id="resetBtn">Reset</button>
   
+  <button id="settingsToggle">Setup Logging</button>
+  <button id="editSettingsBtn" class="hidden">Edit Logs Settings</button>
+  
   <div id="settingsContainer">
-    <label for="webAppUrl">Google Sheets Web App URL:</label>
-    <input type="text" id="webAppUrl" placeholder="Paste URL from Google Apps Script">
-    <label for="secretKey">Secret Key:</label>
-    <input type="password" id="secretKey" placeholder="Your secret password">
-    <button id="saveSettingsBtn">Save Settings</button>
-    <div id="statusMessage"></div>
+    <label class="checkbox-label">
+      <input type="checkbox" id="enableLoggingCheckbox">
+      Enable Session Logging
+    </label>
+    
+    <div id="loggingConfigSection">
+      <label for="webAppUrl">Google Sheets Web App URL:</label>
+      <input type="text" id="webAppUrl" placeholder="Paste URL from Google Apps Script">
+      <label for="secretKey">Secret Key:</label>
+      <input type="password" id="secretKey" placeholder="Your secret password">
+      <button id="saveSettingsBtn">Save Settings</button>
+      <div id="statusMessage"></div>
+    </div>
   </div>
   
   <div id="autoRestartContainer">

@@ -8,7 +8,13 @@ let sessionInitialTime;
 // Google Sheets logging function
 async function logSession(sessionType, startTime, endTime, duration, completed) {
   try {
-    const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey']);
+    const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey', 'enableLogging']);
+    
+    // Check if logging is enabled
+    if (settings.enableLogging === false) {
+      console.log('Session logging disabled, skipping log');
+      return;
+    }
     
     if (!settings.webAppUrl || !settings.secretKey) {
       console.log('Google Sheets not configured, skipping log');
@@ -51,7 +57,7 @@ async function logSession(sessionType, startTime, endTime, duration, completed) 
 }
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message) => {
   if (message.command === 'startTimer') {
     startTimer();
   } else if (message.command === 'pauseTimer') {
