@@ -156,6 +156,6 @@ See [Contributing Guidelines](CONTRIBUTING.md) for more information.
 
 ## Contact
 
-Eyal Silberman - gerontologytech@gmail.com
+Eyal Silberman - eyal.silberman@gmail.com
 
-Project Link: [https://github.com/Gerontologytech/pomodoro.git](https://github.com/Gerontologytech/pomodoro.git)
+Project Link: [https://github.com/EyalSilberman/pomodoro.git](https://github.com/EyalSilberman/pomodoro.git)
