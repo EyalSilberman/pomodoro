@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pomodoro Tasks</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+    }
+    .task-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+    .stat-label {
+      font-size: 0.9em;
+      color: #666;
+    }
+    .task-list {
+      margin-top: 20px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      border-left: 4px solid #ddd;
+      transition: all 0.3s ease;
+    }
+    .task-item:hover {
+      background-color: #f0f0f0;
+      transform: translateX(5px);
+    }
+    .task-item.pending {
+      border-left-color: #2196F3;
+    }
+    .task-item.in-progress {
+      border-left-color: #FF9800;
+      background-color: #fff3e0;
+    }
+    .task-item.completed {
+      border-left-color: #4CAF50;
+      background-color: #e8f5e8;
+    }
+    .task-status {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    .task-status.pending {
+      background-color: #2196F3;
+    }
+    .task-status.in-progress {
+      background-color: #FF9800;
+    }
+    .task-status.completed {
+      background-color: #4CAF50;
+    }
+    .task-content {
+      flex-grow: 1;
+    }
+    .task-name {
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-bottom: 5px;
+    }
+    .task-description {
+      color: #666;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+    .task-index {
+      font-weight: bold;
+      color: #888;
+      margin-right: 10px;
+      min-width: 30px;
+    }
+    .no-tasks {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 40px;
+    }
+    .current-task-indicator {
+      background-color: #4CAF50;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 0.8em;
+      margin-left: 10px;
+    }
+    .refresh-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-bottom: 20px;
+    }
+    .refresh-btn:hover {
+      background-color: #45a049;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .task-actions {
+      margin-left: 15px;
+    }
+    .status-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+    .status-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Pomodoro Tasks</h1>
+    
+    <button id="refreshBtn" class="refresh-btn">Refresh Tasks</button>
+    
+    <div id="taskStats" class="task-stats">
+      <div class="stat-item">
+        <div class="stat-number" id="totalTasks">0</div>
+        <div class="stat-label">Total Tasks</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="completedTasks">0</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="pendingTasks">0</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+    
+    <div id="taskList" class="task-list">
+      <div class="loading">Loading tasks...</div>
+    </div>
+  </div>
+  
+  <script src="tasks.js"></script>
+</body>
+</html>

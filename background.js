@@ -57,7 +57,7 @@ async function logSession(sessionType, startTime, endTime, duration, completed) 
 }
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === 'startTimer') {
     startTimer();
   } else if (message.command === 'pauseTimer') {
@@ -73,6 +73,28 @@ chrome.runtime.onMessage.addListener((message) => {
       isBreak: isBreak,
       isRunning: timer !== undefined
     });
+  } else if (message.command === 'getTasks') {
+    // Get tasks from storage and send response
+    chrome.storage.local.get(['tasks'], (result) => {
+      sendResponse({ tasks: result.tasks || [] });
+    });
+    return true; // Keep message channel open for async response
+  } else if (message.command === 'updateTaskStatus') {
+    // Update task status in storage
+    chrome.storage.local.get(['tasks'], (result) => {
+      const tasks = result.tasks || [];
+      const taskIndex = tasks.findIndex(task => task.id === message.taskId);
+      
+      if (taskIndex !== -1) {
+        tasks[taskIndex].status = message.status;
+        chrome.storage.local.set({ tasks: tasks }, () => {
+          sendResponse({ success: true });
+        });
+      } else {
+        sendResponse({ success: false, error: 'Task not found' });
+      }
+    });
+    return true; // Keep message channel open for async response
   }
 });
 

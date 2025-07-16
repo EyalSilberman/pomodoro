@@ -182,3 +182,83 @@ function updateSettingsVisibility() {
     }
   });
 }
+
+// Task Manager functionality
+document.getElementById('taskManagerBtn').addEventListener('click', () => {
+  const taskConfigContainer = document.getElementById('taskConfigContainer');
+  taskConfigContainer.classList.toggle('hidden');
+});
+
+// Load tasks functionality
+document.getElementById('loadTasksBtn').addEventListener('click', async () => {
+  const sheetName = document.getElementById('sheetName').value.trim();
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const taskStatusMessage = document.getElementById('taskStatusMessage');
+  const loadTasksBtn = document.getElementById('loadTasksBtn');
+  const viewTasksBtn = document.getElementById('viewTasksBtn');
+  
+  if (!sheetName) {
+    taskStatusMessage.textContent = 'Please enter a sheet name.';
+    taskStatusMessage.style.color = '#FF4444';
+    setTimeout(() => taskStatusMessage.textContent = '', 3000);
+    return;
+  }
+  
+  // Check if Google Sheets is configured
+  const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey', 'enableLogging']);
+  if (!settings.webAppUrl || !settings.secretKey) {
+    taskStatusMessage.textContent = 'Please configure Google Sheets settings first.';
+    taskStatusMessage.style.color = '#FF4444';
+    setTimeout(() => taskStatusMessage.textContent = '', 3000);
+    return;
+  }
+  
+  // Show loading indicator
+  loadingIndicator.classList.add('show');
+  loadTasksBtn.disabled = true;
+  taskStatusMessage.textContent = '';
+  
+  try {
+    const url = `${settings.webAppUrl}?secret=${encodeURIComponent(settings.secretKey)}&action=getTasks&sheetName=${encodeURIComponent(sheetName)}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      // Store tasks in local storage
+      await chrome.storage.local.set({ 
+        tasks: result.tasks,
+        taskSheetName: sheetName 
+      });
+      
+      taskStatusMessage.textContent = `${result.tasks.length} tasks loaded successfully!`;
+      taskStatusMessage.style.color = '#4CAF50';
+      viewTasksBtn.classList.remove('hidden');
+      
+      setTimeout(() => taskStatusMessage.textContent = '', 3000);
+    } else {
+      taskStatusMessage.textContent = result.message || 'Failed to load tasks.';
+      taskStatusMessage.style.color = '#FF4444';
+      setTimeout(() => taskStatusMessage.textContent = '', 3000);
+    }
+    
+  } catch (error) {
+    console.error('Error loading tasks:', error);
+    taskStatusMessage.textContent = 'Error loading tasks. Check console for details.';
+    taskStatusMessage.style.color = '#FF4444';
+    setTimeout(() => taskStatusMessage.textContent = '', 3000);
+  } finally {
+    loadingIndicator.classList.remove('show');
+    loadTasksBtn.disabled = false;
+  }
+});
+
+// View tasks functionality
+document.getElementById('viewTasksBtn').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'tasks.html' });
+});

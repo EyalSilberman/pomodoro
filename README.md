@@ -32,6 +32,14 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 - 🔐 Private and secure - data stays in your Google account
 - 📅 Comprehensive session tracking with timestamps
 
+### Task Management
+- 📝 Load tasks from Google Sheets
+- ✅ Track task progress with visual status indicators
+- 📊 Task statistics dashboard (total, completed, pending)
+- 🔄 Interactive status management (pending → in-progress → completed)
+- 🔃 Refresh tasks while preserving progress
+- 💾 Offline task access with local storage
+
 ## Installation
 
 ### From Chrome Web Store - TBD
@@ -61,29 +69,42 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 - ✅ **No External Services**: No data passes through our servers or any third-party
 - ✅ **Open Source**: All code is visible and auditable in this repository
 
-The permissions requested are only for YOUR script to write to YOUR spreadsheet - exactly like any other Google Sheets add-on you might use.
+The permissions requested are only for YOUR script to read/write to YOUR spreadsheet - exactly like any other Google Sheets add-on you might use.
 
 ### How to Set Up Google Sheets Integration
 
 Follow these steps to connect the extension to your personal Google Sheet. This process gives you full control over your data and script.
 
-**Part A: Create Your Google Sheet**
+**Part A: Create Your Google Sheets**
 
 1. **Create a New Google Sheet**: Go to [sheets.google.com](https://sheets.google.com) and create a new spreadsheet.
-2. **Name Your Sheet**: Rename it to "Pomodoro Logs" (or any name you prefer).
-3. **Set Up Headers**: In the first row, add these exact headers:
+2. **Name Your Sheet**: Rename it to "Pomodoro Data" (or any name you prefer).
+3. **Set Up Session Logging Sheet**: Create a sheet tab named "Logs" with these exact headers in the first row:
 
 | A1 | B1 | C1 | D1 | E1 | F1 |
 |---|---|---|---|---|---|
 | **session date** | **session start time** | **session end time** | **session type** | **session duration** | **session completed** |
 
-Your sheet should look like this:
+Your "Logs" sheet should look like this:
 ```
 A1: session date          B1: session start time    C1: session end time
 D1: session type          E1: session duration       F1: session completed
 ```
 
-4. **Copy the Sheet ID**: From your sheet's URL (`https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`), copy the SHEET_ID part.
+4. **Set Up Task Management Sheet** *(Optional)*: Create another sheet tab named "Tasks" with these headers in the first row:
+
+| A1 | B1 |
+|---|---|
+| **task** | **description** |
+
+Your "Tasks" sheet should look like this:
+```
+A1: task                   B1: description
+A2: Complete project report    B2: Write quarterly summary
+A3: Review meeting notes       B3: Go through yesterday's notes
+```
+
+5. **Copy the Sheet ID**: From your sheet's URL (`https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`), copy the SHEET_ID part.
 
 **Part B: Create and Deploy the Google Apps Script**
 
@@ -136,10 +157,19 @@ D1: session type          E1: session duration       F1: session completed
    - Both completed and incomplete sessions are tracked
    - Data logged: Date, Start Time, End Time, Session Type, Duration (minutes), Completion Status
 
-4. **Customization**
+4. **Task Management** *(New Feature)*
+   - Click the "Task Manager" button in the extension popup
+   - Enter your Google Sheets task tab name (e.g., "Tasks")
+   - Click "Load Tasks" to import your tasks from the spreadsheet
+   - Click "View Tasks" to open the task management interface
+   - Track progress by cycling through: Pending → In Progress → Completed
+   - Refresh tasks anytime while preserving your progress
+
+5. **Customization**
    - Toggle auto-restart functionality
    - Enable/disable session logging
    - Edit Google Sheets integration settings anytime
+   - Manage tasks from your Google Sheets
 
 ## Project Structure
 
@@ -151,6 +181,8 @@ pomodoro-chrome-extension/
 ├── background.js
 ├── break.html
 ├── break.js
+├── tasks.html           # Task management interface
+├── tasks.js             # Task management logic
 ├── Code.gs              # Google Apps Script for users
 ├── icons/
 │   ├── icon16.png
@@ -219,7 +251,9 @@ See [Contributing Guidelines](CONTRIBUTING.md) for more information.
 - [ ] Customizable work/break durations
 - [ ] Sound notifications
 - [ ] Dark mode support
-- [ ] Task labeling
+- [x] ~~Task management system~~ ✅ **Completed!**
+- [ ] Integration with Pomodoro sessions (auto-advance tasks)
+- [ ] Task filtering and search
 - [ ] Integration with productivity tools
 - [ ] Mobile sync support
 

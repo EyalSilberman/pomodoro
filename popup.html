@@ -103,6 +103,50 @@
       margin-top: 5px;
       text-align: center;
     }
+    #taskManagerBtn {
+      background-color: #9C27B0;
+      margin-bottom: 10px;
+    }
+    #taskManagerBtn:hover {
+      background-color: #7B1FA2;
+    }
+    #taskConfigContainer {
+      margin: 10px 0;
+      text-align: left;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    #taskConfigContainer.hidden {
+      display: none;
+    }
+    #loadTasksBtn {
+      background-color: #9C27B0;
+      margin-top: 10px;
+    }
+    #loadTasksBtn:hover {
+      background-color: #7B1FA2;
+    }
+    #loadTasksBtn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #taskStatusMessage {
+      font-size: 11px;
+      margin-top: 5px;
+      text-align: center;
+    }
+    .loading-indicator {
+      display: none;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .loading-indicator.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -110,6 +154,7 @@
   <button id="startBtn">Start</button>
   <button id="resetBtn">Reset</button>
   
+  <button id="taskManagerBtn">Task Manager</button>
   <button id="settingsToggle">Setup Logging</button>
   <button id="editSettingsBtn" class="hidden">Edit Logs Settings</button>
   
@@ -127,6 +172,15 @@
       <button id="saveSettingsBtn">Save Settings</button>
       <div id="statusMessage"></div>
     </div>
+  </div>
+  
+  <div id="taskConfigContainer" class="hidden">
+    <label for="sheetName">Sheet Name for Tasks:</label>
+    <input type="text" id="sheetName" placeholder="Enter sheet name (e.g., Tasks)">
+    <button id="loadTasksBtn">Load Tasks</button>
+    <div class="loading-indicator" id="loadingIndicator">Loading tasks...</div>
+    <div id="taskStatusMessage"></div>
+    <button id="viewTasksBtn" class="hidden" style="background-color: #4CAF50; margin-top: 10px;">View Tasks</button>
   </div>
   
   <div id="autoRestartContainer">
