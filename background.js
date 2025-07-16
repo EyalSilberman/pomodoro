@@ -56,6 +56,48 @@ async function logSession(sessionType, startTime, endTime, duration, completed) 
   }
 }
 
+// Google Sheets task fetching function
+async function fetchTasks(sheetName) {
+  try {
+    const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey']);
+    
+    if (!settings.webAppUrl || !settings.secretKey) {
+      throw new Error('Google Sheets not configured');
+    }
+    
+    const response = await fetch(settings.webAppUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({
+        secret: settings.secretKey,
+        action: 'getTasks',
+        sheetName: sheetName
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      // Store tasks in local storage
+      await chrome.storage.local.set({ 
+        tasks: result.tasks,
+        taskSheetName: sheetName 
+      });
+      return { success: true, tasks: result.tasks };
+    } else {
+      throw new Error(result.message || 'Failed to fetch tasks');
+    }
+    
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === 'startTimer') {
@@ -77,6 +119,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Get tasks from storage and send response
     chrome.storage.local.get(['tasks'], (result) => {
       sendResponse({ tasks: result.tasks || [] });
+    });
+    return true; // Keep message channel open for async response
+  } else if (message.command === 'loadTasks') {
+    // Load tasks from Google Sheets
+    fetchTasks(message.sheetName).then(result => {
+      sendResponse(result);
     });
     return true; // Keep message channel open for async response
   } else if (message.command === 'updateTaskStatus') {
