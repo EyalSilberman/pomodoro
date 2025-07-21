@@ -177,6 +177,28 @@
       word-wrap: break-word;
       display: none;
     }
+    .mark-done-btn {
+      background-color: #4CAF50;
+      font-size: 12px;
+    }
+    .mark-done-btn:hover {
+      background-color: #45a049;
+    }
+    .mark-done-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .break-btn {
+      background-color: #FF9800;
+      font-size: 12px;
+    }
+    .break-btn:hover {
+      background-color: #F57C00;
+    }
+    .break-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -186,6 +208,8 @@
   </div>
   <button id="startBtn">Start</button>
   <button id="resetBtn">Reset</button>
+  <button id="markDoneBtn" class="mark-done-btn">Task Complete</button>
+  <button id="forceBreakBtn" class="break-btn">Force Break</button>
   
   <button id="taskManagerBtn">Task Manager</button>
   <button id="settingsToggle">Setup Logging</button>

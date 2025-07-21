@@ -1,6 +1,8 @@
 let timeLeft = 0;
 let currentTask = null;
+let lastSessionTask = null;
 let allTasks = [];
+let taskCompletedEarly = false;
 
 function updateTimer() {
   const minutes = Math.floor(timeLeft / 60);
@@ -18,10 +20,21 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get initial timer state and current task from background
   chrome.runtime.sendMessage({ command: 'getState' });
   chrome.runtime.sendMessage({ command: 'getCurrentTask' });
-  chrome.runtime.sendMessage({ command: 'getTasks' });
+  
+  // Get fresh tasks data from storage
+  chrome.runtime.sendMessage({ command: 'getTasks' }, (response) => {
+    if (response && response.tasks) {
+      allTasks = response.tasks;
+      // Re-display current task with updated task list
+      displayCurrentTask();
+    }
+  });
   
   // Add event listeners for task interaction buttons
   setupTaskEventListeners();
+  
+  // Add event listener for finish break button
+  document.getElementById('finishBreakBtn').addEventListener('click', finishBreak);
 });
 
 // Listen for messages from background
@@ -33,11 +46,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.task !== undefined) {
     currentTask = message.task;
+  }
+  
+  if (message.lastSessionTask !== undefined) {
+    lastSessionTask = message.lastSessionTask;
     displayCurrentTask();
   }
   
   if (message.tasks) {
     allTasks = message.tasks;
+  }
+  
+  if (message.taskCompletedEarly !== undefined) {
+    taskCompletedEarly = message.taskCompletedEarly;
+    displayCurrentTask();
   }
 });
 
@@ -46,11 +68,43 @@ function displayCurrentTask() {
   const taskInfo = document.getElementById('taskInfo');
   const taskName = document.getElementById('taskName');
   const taskDescription = document.getElementById('taskDescription');
+  const taskQuestion = document.querySelector('.task-question');
+  const nextTaskInfo = document.getElementById('nextTaskInfo');
+  const nextTaskName = document.getElementById('nextTaskName');
   
-  if (currentTask) {
-    taskName.textContent = currentTask.name;
-    taskDescription.textContent = currentTask.description;
+  // Show the task that was actually worked on in the last session
+  const displayTask = lastSessionTask || currentTask;
+  if (displayTask) {
+    taskName.textContent = displayTask.name;
+    taskDescription.textContent = displayTask.description;
     taskInfo.style.display = 'block';
+    
+    if (taskCompletedEarly) {
+      // Show simplified view - task already completed, just show next task
+      taskQuestion.style.display = 'none';
+      
+      // Get current task from background (which should be the next task now)
+      chrome.runtime.sendMessage({ command: 'getCurrentTask' }, (response) => {
+        if (response && response.task) {
+          nextTaskInfo.style.display = 'block';
+          nextTaskName.textContent = response.task.name;
+        } else {
+          // Fallback: look for pending tasks
+          const nextTask = allTasks.find(task => task.status === 'pending');
+          if (nextTask) {
+            nextTaskInfo.style.display = 'block';
+            nextTaskName.textContent = nextTask.name;
+          } else {
+            nextTaskInfo.style.display = 'block';
+            nextTaskName.textContent = 'No more tasks available';
+          }
+        }
+      });
+    } else {
+      // Show full interaction - ask if task is completed
+      taskQuestion.style.display = 'block';
+      nextTaskInfo.style.display = 'none';
+    }
   } else {
     taskInfo.style.display = 'none';
   }
@@ -66,17 +120,30 @@ function setupTaskEventListeners() {
 
 // Handle task finished
 function handleTaskFinished() {
-  if (currentTask) {
-    // Mark current task as completed
+  // Use the task that was actually worked on (lastSessionTask or currentTask)
+  const taskToComplete = lastSessionTask || currentTask;
+  
+  if (taskToComplete) {
+    // Mark the last session task as completed and wait for response
     chrome.runtime.sendMessage({
       command: 'updateTaskStatus',
-      taskId: currentTask.id,
+      taskId: taskToComplete.id,
       status: 'completed'
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error marking task complete:', chrome.runtime.lastError.message);
+        return;
+      }
+      
+      if (response && response.success) {
+        console.log('Task marked as completed successfully');
+        // Hide question, show next task info
+        document.querySelector('.task-question').style.display = 'none';
+        showNextTask();
+      } else {
+        console.error('Failed to mark task complete:', response ? response.error : 'No response');
+      }
     });
-    
-    // Hide question, show next task info
-    document.querySelector('.task-question').style.display = 'none';
-    showNextTask();
   }
 }
 
@@ -90,24 +157,38 @@ function handleTaskNotFinished() {
 // Handle continue with current task
 function handleContinueTask() {
   // Keep current task as is, show confirmation
+  const taskToContinue = lastSessionTask || currentTask;
   document.getElementById('continueOptions').style.display = 'none';
   document.getElementById('nextTaskInfo').style.display = 'block';
-  document.getElementById('nextTaskName').textContent = currentTask ? currentTask.name : 'No task';
+  document.getElementById('nextTaskName').textContent = taskToContinue ? taskToContinue.name : 'No task';
 }
 
 // Handle move to next task
 function handleMoveToNext() {
-  if (currentTask) {
-    // Mark current task as completed
+  // Use the task that was actually worked on (lastSessionTask or currentTask)
+  const taskToComplete = lastSessionTask || currentTask;
+  
+  if (taskToComplete) {
+    // Mark the last session task as completed and wait for response
     chrome.runtime.sendMessage({
       command: 'updateTaskStatus',
-      taskId: currentTask.id,
+      taskId: taskToComplete.id,
       status: 'completed'
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error marking task complete:', chrome.runtime.lastError.message);
+        return;
+      }
+      
+      if (response && response.success) {
+        console.log('Task marked as completed successfully');
+        // Hide continue options, show next task
+        document.getElementById('continueOptions').style.display = 'none';
+        showNextTask();
+      } else {
+        console.error('Failed to mark task complete:', response ? response.error : 'No response');
+      }
     });
-    
-    // Hide continue options, show next task
-    document.getElementById('continueOptions').style.display = 'none';
-    showNextTask();
   }
 }
 
@@ -117,25 +198,55 @@ function showNextTask() {
   const nextTask = allTasks.find(task => task.status === 'pending');
   
   if (nextTask) {
-    // Set next task as in-progress
+    // Set next task as in-progress and wait for response
     chrome.runtime.sendMessage({
       command: 'updateTaskStatus',
       taskId: nextTask.id,
       status: 'in-progress'
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error setting next task status:', chrome.runtime.lastError.message);
+        return;
+      }
+      
+      if (response && response.success) {
+        // Set as current task in background
+        chrome.runtime.sendMessage({
+          command: 'setCurrentTask',
+          task: nextTask
+        }, (setResponse) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error setting current task:', chrome.runtime.lastError.message);
+          }
+          
+          // Update display
+          document.getElementById('nextTaskInfo').style.display = 'block';
+          document.getElementById('nextTaskName').textContent = nextTask.name;
+          console.log('Next task set successfully:', nextTask.name);
+        });
+      } else {
+        console.error('Failed to set next task status:', response ? response.error : 'No response');
+      }
     });
-    
-    chrome.runtime.sendMessage({
-      command: 'setCurrentTask',
-      task: nextTask
-    });
-    
-    document.getElementById('nextTaskInfo').style.display = 'block';
-    document.getElementById('nextTaskName').textContent = nextTask.name;
   } else {
     // No more tasks
     document.getElementById('nextTaskInfo').style.display = 'block';
     document.getElementById('nextTaskName').textContent = 'No more tasks available';
   }
+}
+
+// Finish break early and start next session
+function finishBreak() {
+  chrome.runtime.sendMessage({ command: 'finishBreak' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error finishing break:', chrome.runtime.lastError.message);
+    } else if (response && response.success) {
+      console.log('Break finished successfully, starting work session');
+      // Break tab will be closed by background script
+    } else {
+      console.error('Failed to finish break:', response ? response.error : 'No response');
+    }
+  });
 }
 
 // Update timer display every second

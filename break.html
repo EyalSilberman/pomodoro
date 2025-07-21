@@ -101,6 +101,25 @@
       font-size: 18px;
       font-weight: bold;
     }
+    .finish-break-container {
+      margin-top: 30px;
+      padding: 20px;
+    }
+    .finish-break-btn {
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      min-width: 300px;
+    }
+    .finish-break-btn:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
@@ -116,16 +135,16 @@
       <div class="task-question">
         <h3>Did you finish this task?</h3>
         <div class="task-buttons">
-          <button id="taskFinished" class="task-btn finished-btn">Yes, I finished it</button>
-          <button id="taskNotFinished" class="task-btn not-finished-btn">No, not yet</button>
+          <button id="taskFinished" class="task-btn finished-btn">Yes, Task Complete</button>
+          <button id="taskNotFinished" class="task-btn not-finished-btn">No, Need More Time</button>
         </div>
       </div>
       
       <div id="continueOptions" class="continue-options" style="display: none;">
         <h3>What would you like to do next?</h3>
         <div class="task-buttons">
-          <button id="continueTask" class="task-btn continue-btn">Continue this task</button>
-          <button id="moveToNext" class="task-btn next-btn">Move to next task</button>
+          <button id="continueTask" class="task-btn continue-btn">Continue This Task</button>
+          <button id="moveToNext" class="task-btn next-btn">Move to Next Task</button>
         </div>
       </div>
       
@@ -133,6 +152,10 @@
         <h3>Next session you will work on:</h3>
         <div id="nextTaskName" class="next-task-name"></div>
       </div>
+    </div>
+    
+    <div id="finishBreakContainer" class="finish-break-container">
+      <button id="finishBreakBtn" class="finish-break-btn">Start Next Work Session</button>
     </div>
   </div>
   <script src="break.js"></script>

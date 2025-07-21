@@ -151,6 +151,40 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('startBtn').textContent = 'Start';
   });
   
+  // Mark Done button
+  document.getElementById('markDoneBtn').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ command: 'markTaskComplete' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error marking task complete:', chrome.runtime.lastError.message);
+        return;
+      }
+      
+      if (response && response.success) {
+        console.log('Task marked as complete successfully');
+        // Update current task display to show next task
+        updateCurrentTaskDisplay();
+        
+        // Force break to start after marking task complete
+        setTimeout(() => {
+          chrome.runtime.sendMessage({ command: 'forceBreak' }, (breakResponse) => {
+            if (chrome.runtime.lastError) {
+              console.error('Error forcing break:', chrome.runtime.lastError.message);
+            } else if (breakResponse && breakResponse.success) {
+              console.log('Break started successfully');
+            }
+          });
+        }, 500);
+      } else {
+        console.error('Failed to mark task complete:', response ? response.error : 'No response');
+      }
+    });
+  });
+  
+  // Force Break button (for testing)
+  document.getElementById('forceBreakBtn').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ command: 'forceBreak' });
+  });
+  
   
   // Save Google Sheets settings
   document.getElementById('saveSettingsBtn').addEventListener('click', () => {
@@ -269,14 +303,17 @@ function updateSettingsVisibility() {
 function updateCurrentTaskDisplay() {
   chrome.runtime.sendMessage({ command: 'getCurrentTask' }, (response) => {
     const currentTaskName = document.getElementById('currentTaskName');
+    const markDoneBtn = document.getElementById('markDoneBtn');
     
     if (response && response.task) {
       currentTaskName.textContent = response.task.name;
       currentTaskName.setAttribute('data-description', response.task.description || '');
       setupTaskHover();
+      markDoneBtn.disabled = false;
     } else {
       currentTaskName.textContent = 'No task selected';
       currentTaskName.removeAttribute('data-description');
+      markDoneBtn.disabled = true;
     }
   });
 }

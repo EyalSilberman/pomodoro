@@ -148,6 +148,8 @@ A3: Review meeting notes       B3: Go through yesterday's notes
    - Click the extension icon
    - Press "Start" to begin a 25-minute work session
    - The timer will be visible in both the popup and extension icon
+   - **NEW**: Use "Mark Done" button to complete current task before timer ends
+   - **NEW**: Use "Break (Test)" button to force break mode for testing
 
 2. **During Breaks** *(Enhanced with Task Management)*
    - A new tab will automatically open when break time starts
@@ -155,6 +157,8 @@ A3: Review meeting notes       B3: Go through yesterday's notes
    - **NEW**: Answer "Did you finish this task?" to update task status
    - **NEW**: For unfinished tasks, choose to continue or move to the next task
    - **NEW**: Preview what task you'll work on in the next session
+   - **NEW**: Click "I finished my break, let's start the next session" to end break early
+   - **NEW**: When task marked complete early, break page shows simplified view with next task
    - The break tab will close automatically after 5 minutes
    - If auto-restart is enabled, a new work session will begin
 
@@ -178,8 +182,16 @@ A3: Review meeting notes       B3: Go through yesterday's notes
    - Smart workflow: If you mark a task complete, the next pending task becomes active
    - If you're not done, choose to continue the same task or move to the next one
    - See a preview of your next work session's task before the break ends
+   - **NEW**: When task completed early via popup, break shows simplified view
+   - **NEW**: Break control - end break early and start next session immediately
 
-5. **Customization**
+5. **Enhanced Workflow Controls** *(New Features)*
+   - **Early Task Completion**: Mark tasks as done before session ends via popup
+   - **Break Control**: End breaks early and immediately start next work session  
+   - **Testing Mode**: Force break page to open for testing workflows
+   - **Smart Task Progression**: Automatically advances to next pending task when current is completed
+
+6. **Customization**
    - Toggle auto-restart functionality
    - Enable/disable session logging
    - Edit Google Sheets integration settings anytime

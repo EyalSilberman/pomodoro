@@ -5,6 +5,8 @@ let autoRestart = true;
 let sessionStartTime;
 let sessionInitialTime;
 let currentTask = null;
+let lastSessionTask = null;
+let taskCompletedEarly = false;
 
 // Initialize current task from storage on startup
 chrome.storage.local.get(['tasks'], (result) => {
@@ -156,9 +158,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       isRunning: timer !== undefined
     };
     
-    // If this is for the break page, also include current task
-    if (isBreak && currentTask) {
-      response.task = currentTask;
+    // If this is for the break page, also include task info and completion status
+    if (isBreak) {
+      // Send the last session task (what user actually worked on)
+      if (lastSessionTask) {
+        response.lastSessionTask = lastSessionTask;
+      }
+      // Send the current task (what they'll work on next)
+      if (currentTask) {
+        response.task = currentTask;
+      }
+      response.taskCompletedEarly = taskCompletedEarly;
     }
     
     chrome.runtime.sendMessage(response);
@@ -194,10 +204,102 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Set current task
     currentTask = message.task;
     sendResponse({ success: true });
+    return true; // Keep message channel open for async response
   } else if (message.command === 'getCurrentTask') {
     // Get current task
     sendResponse({ task: currentTask });
     return true; // Keep message channel open
+  } else if (message.command === 'markTaskComplete') {
+    // Mark current task as completed and set next task as current
+    if (currentTask) {
+      chrome.storage.local.get(['tasks'], (result) => {
+        const tasks = result.tasks || [];
+        const taskIndex = tasks.findIndex(task => task.id === currentTask.id);
+        
+        if (taskIndex !== -1) {
+          // Store the last session task before changing currentTask
+          lastSessionTask = currentTask;
+          
+          // Mark current task as completed
+          tasks[taskIndex].status = 'completed';
+          
+          // Find next pending task and make it in-progress
+          const nextTask = tasks.find(task => task.status === 'pending');
+          if (nextTask) {
+            nextTask.status = 'in-progress';
+            currentTask = nextTask;
+          } else {
+            currentTask = null;
+          }
+          
+          // Save updated tasks and mark that task was completed early
+          taskCompletedEarly = true;
+          chrome.storage.local.set({ tasks: tasks }, () => {
+            sendResponse({ success: true, nextTask: currentTask });
+          });
+        } else {
+          sendResponse({ success: false, error: 'Task not found' });
+        }
+      });
+    } else {
+      sendResponse({ success: false, error: 'No current task' });
+    }
+    return true; // Keep message channel open for async response
+  } else if (message.command === 'forceBreak') {
+    // Force break for testing - end current session and start break
+    if (timer) {
+      clearInterval(timer);
+      timer = undefined;
+      
+      // Log incomplete session if there was one
+      if (sessionStartTime) {
+        const endTime = Date.now();
+        const duration = sessionInitialTime - timeLeft;
+        const sessionType = isBreak ? 'Break' : 'Work';
+        logSession(sessionType, sessionStartTime, endTime, duration, false);
+        sessionStartTime = null;
+      }
+      
+      // Start break
+      isBreak = true;
+      timeLeft = 300; // 5 minutes
+      sessionStartTime = null;
+      
+      // Send task completion info to break page
+      createBreakTab();
+      startTimer(); // Start break timer
+      
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: 'No timer running' });
+    }
+    return true; // Keep message channel open for async response
+  } else if (message.command === 'finishBreak') {
+    // Finish break early and start next work session
+    if (isBreak && timer) {
+      clearInterval(timer);
+      timer = undefined;
+      
+      // End break session
+      isBreak = false;
+      timeLeft = 1500; // 25 minutes
+      sessionStartTime = null;
+      taskCompletedEarly = false; // Reset completion flag
+      lastSessionTask = null; // Reset last session task
+      
+      // Close break tab
+      chrome.tabs.query({ url: chrome.runtime.getURL("break.html") }, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.remove(tab.id));
+      });
+      
+      // Start next work session automatically
+      startTimer();
+      
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: 'Not in break mode' });
+    }
+    return true; // Keep message channel open for async response
   }
 });
 
@@ -264,6 +366,7 @@ function startTimer() {
       
       if (!isBreak) {
         // Work session ended, start break
+        lastSessionTask = currentTask; // Store the task that was worked on
         isBreak = true;
         timeLeft = 300; // 5 minutes
         sessionStartTime = null; // Reset for next session
@@ -274,6 +377,8 @@ function startTimer() {
         isBreak = false;
         timeLeft = 1500; // 25 minutes
         sessionStartTime = null; // Reset for next session
+        taskCompletedEarly = false; // Reset completion flag
+        lastSessionTask = null; // Reset last session task
         
         // Close break tab
         chrome.tabs.query({ url: chrome.runtime.getURL("break.html") }, (tabs) => {
@@ -323,6 +428,8 @@ function resetTimer() {
   
   isBreak = false;
   timeLeft = 1500;
+  taskCompletedEarly = false; // Reset completion flag
+  lastSessionTask = null; // Reset last session task
   updateTimerDisplay(timeLeft);
 }
 
