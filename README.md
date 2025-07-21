@@ -232,9 +232,25 @@ Want to contribute? Great! Here's how:
 
 ## Troubleshooting
 
+### Basic Issues
 - **Timer not showing in icon?** Make sure you have the latest Chrome version
 - **Break tab not opening?** Check if pop-ups are allowed for the extension
 - **Stats not saving?** Verify that storage permission is granted
+
+### Task Management Issues
+- **"Task Complete" button disabled?** Make sure you have loaded tasks and have an active task selected
+- **Tasks not updating?** Check your Google Sheets configuration and try refreshing tasks
+- **Break page showing wrong task?** This is now fixed - break page shows the actual task worked on, not the next task
+
+### Advanced Workflow Issues
+- **Task status not persisting?** Make sure to wait for task operations to complete before starting new sessions
+- **Break page not showing after "Force Break"?** Check that pop-ups are enabled and try refreshing the extension
+- **Console errors?** Open Chrome DevTools to check for error messages - most operations now have detailed logging
+
+### Performance Tips
+- **For best results**: Allow task completion operations to finish before clicking other buttons
+- **If tasks seem stuck**: Try reloading the extension or refreshing the task list
+- **For debugging**: Open Chrome DevTools console to see detailed operation logs
 
 ## License
 
@@ -280,11 +296,17 @@ See [Contributing Guidelines](CONTRIBUTING.md) for more information.
 - [x] ~~Task management system~~ ✅ **Completed!**
 - [x] ~~Integration with Pomodoro sessions (auto-advance tasks)~~ ✅ **Completed!**
 - [x] ~~Enhanced break page with task management~~ ✅ **Completed!**
+- [x] ~~Early task completion controls~~ ✅ **Completed!**
+- [x] ~~Break duration control~~ ✅ **Completed!**
+- [x] ~~Intelligent task progression~~ ✅ **Completed!**
 - [ ] Task filtering and search
 - [ ] Task time tracking and analytics
 - [ ] Integration with productivity tools
 - [ ] Mobile sync support
 - [ ] Keyboard shortcuts for task decisions
+- [ ] Task notes and comments
+- [ ] Bulk task operations
+- [ ] Task categories and tags
 
 ## Contact
 
