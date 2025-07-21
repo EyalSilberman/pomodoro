@@ -149,12 +149,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.command === 'setAutoRestart') {
     autoRestart = message.value;
   } else if (message.command === 'getState') {
-    // Send current state to popup
-    chrome.runtime.sendMessage({
+    // Send current state to popup/break page
+    const response = {
       timeLeft: timeLeft,
       isBreak: isBreak,
       isRunning: timer !== undefined
-    });
+    };
+    
+    // If this is for the break page, also include current task
+    if (isBreak && currentTask) {
+      response.task = currentTask;
+    }
+    
+    chrome.runtime.sendMessage(response);
   } else if (message.command === 'getTasks') {
     // Get tasks from storage and send response
     chrome.storage.local.get(['tasks'], (result) => {
@@ -190,6 +197,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.command === 'getCurrentTask') {
     // Get current task
     sendResponse({ task: currentTask });
+    return true; // Keep message channel open
   }
 });
 

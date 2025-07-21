@@ -25,6 +25,9 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 - 🎨 Red-themed break interface
 - 🔄 Auto-closing break tab
 - ⚙️ Configurable auto-restart option
+- 📝 **Interactive task management during breaks**
+- ✅ **Task completion tracking and status updates**
+- 🔄 **Smart task progression and workflow management**
 
 ### Analytics & Logging
 - 📊 Google Sheets integration for session logging
@@ -81,14 +84,14 @@ Follow these steps to connect the extension to your personal Google Sheet. This 
 2. **Name Your Sheet**: Rename it to "Pomodoro Data" (or any name you prefer).
 3. **Set Up Session Logging Sheet**: Create a sheet tab named "Logs" with these exact headers in the first row:
 
-| A1 | B1 | C1 | D1 | E1 | F1 |
-|---|---|---|---|---|---|
-| **session date** | **session start time** | **session end time** | **session type** | **session duration** | **session completed** |
+| A1 | B1 | C1 | D1 | E1 | F1 | G1 |
+|---|---|---|---|---|---|---|
+| **session date** | **session start time** | **session end time** | **session type** | **session duration** | **session completed** | **task name** |
 
 Your "Logs" sheet should look like this:
 ```
 A1: session date          B1: session start time    C1: session end time
-D1: session type          E1: session duration       F1: session completed
+D1: session type          E1: session duration       F1: session completed    G1: task name
 ```
 
 4. **Set Up Task Management Sheet** *(Optional)*: Create another sheet tab named "Tasks" with these headers in the first row:
@@ -146,8 +149,12 @@ A3: Review meeting notes       B3: Go through yesterday's notes
    - Press "Start" to begin a 25-minute work session
    - The timer will be visible in both the popup and extension icon
 
-2. **During Breaks**
+2. **During Breaks** *(Enhanced with Task Management)*
    - A new tab will automatically open when break time starts
+   - **NEW**: See the task you worked on during the last session
+   - **NEW**: Answer "Did you finish this task?" to update task status
+   - **NEW**: For unfinished tasks, choose to continue or move to the next task
+   - **NEW**: Preview what task you'll work on in the next session
    - The break tab will close automatically after 5 minutes
    - If auto-restart is enabled, a new work session will begin
 
@@ -155,15 +162,22 @@ A3: Review meeting notes       B3: Go through yesterday's notes
    - Enable/disable logging anytime with the checkbox in settings
    - When enabled, sessions are automatically logged to your Google Sheet
    - Both completed and incomplete sessions are tracked
-   - Data logged: Date, Start Time, End Time, Session Type, Duration (minutes), Completion Status
+   - Data logged: Date, Start Time, End Time, Session Type, Duration (minutes), Completion Status, Task Name
 
-4. **Task Management** *(New Feature)*
+4. **Task Management** *(Enhanced Feature)*
    - Click the "Task Manager" button in the extension popup
    - Enter your Google Sheets task tab name (e.g., "Tasks")
    - Click "Load Tasks" to import your tasks from the spreadsheet
    - Click "View Tasks" to open the task management interface
    - Track progress by cycling through: Pending → In Progress → Completed
    - Refresh tasks anytime while preserving your progress
+   
+   **Enhanced Break Page Task Management:**
+   - During breaks, the system shows the task from your last work session
+   - Interactive buttons let you mark tasks as completed or continue working on them
+   - Smart workflow: If you mark a task complete, the next pending task becomes active
+   - If you're not done, choose to continue the same task or move to the next one
+   - See a preview of your next work session's task before the break ends
 
 5. **Customization**
    - Toggle auto-restart functionality
@@ -252,10 +266,13 @@ See [Contributing Guidelines](CONTRIBUTING.md) for more information.
 - [ ] Sound notifications
 - [ ] Dark mode support
 - [x] ~~Task management system~~ ✅ **Completed!**
-- [ ] Integration with Pomodoro sessions (auto-advance tasks)
+- [x] ~~Integration with Pomodoro sessions (auto-advance tasks)~~ ✅ **Completed!**
+- [x] ~~Enhanced break page with task management~~ ✅ **Completed!**
 - [ ] Task filtering and search
+- [ ] Task time tracking and analytics
 - [ ] Integration with productivity tools
 - [ ] Mobile sync support
+- [ ] Keyboard shortcuts for task decisions
 
 ## Contact
 
