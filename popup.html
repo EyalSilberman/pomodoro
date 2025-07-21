@@ -2,64 +2,277 @@
 <html>
 <head>
   <style>
+    :root {
+      /* Spacing system */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+      
+      /* Color system - Work state (softer, gentler greens) */
+      --work-primary: #4CAF50;
+      --work-secondary: #66BB6A;
+      --work-light: #E8F5E8;
+      
+      /* Color system - Break state (softer oranges) */
+      --break-primary: #FF9800;
+      --break-secondary: #FFB74D;
+      --break-light: #FFF3E0;
+      
+      /* UI colors (gentler, more muted) */
+      --primary-blue: #42A5F5;
+      --success-green: #66BB6A;
+      --warning-orange: #FFB74D;
+      --purple-accent: #AB47BC;
+      --neutral-gray: #757575;
+      --background: #FAFAFA;
+      --surface: #FFFFFF;
+      --divider: #E0E0E0;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      
+      /* Typography scale */
+      --text-xs: 11px;
+      --text-sm: 12px;
+      --text-base: 14px;
+      --text-lg: 16px;
+      --text-xl: 24px;
+      --text-2xl: 32px;
+      
+      /* Transitions */
+      --transition-fast: 0.15s ease;
+      --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 0.3s ease;
+    }
+    
     body {
-      width: 200px;
-      padding: 10px;
+      width: 280px;
+      max-height: 600px;
+      padding: var(--space-3);
+      margin: 0;
       text-align: center;
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--background);
+      color: var(--text-primary);
+      font-size: var(--text-base);
+      line-height: 1.5;
+      overflow-y: auto;
+      box-sizing: border-box;
     }
     #timer {
-      font-size: 32px;
-      margin: 10px 0;
-      font-weight: bold;
-      transition: color 0.3s ease;
+      font-size: var(--text-2xl);
+      margin: var(--space-4) 0;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: color var(--transition-base);
+      color: var(--work-primary);
     }
+    /* Button base styles */
     button {
       width: 100%;
-      padding: 8px;
-      margin: 5px 0;
-      background-color: #4CAF50;
-      color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--space-2);
       cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
     }
-    button:hover {
-      background-color: #45a049;
+    
+    /* Primary buttons (main actions) */
+    .btn-primary {
+      height: 40px;
+      padding: 0 var(--space-6);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      background-color: var(--primary-blue);
+      color: white;
+      margin: var(--space-2) 0;
     }
+    
+    .btn-primary:hover {
+      background-color: #1565C0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(25, 118, 210, 0.25);
+    }
+    
+    /* Secondary buttons */
+    .btn-secondary {
+      height: 32px;
+      padding: 0 var(--space-4);
+      font-size: var(--text-base);
+      margin: var(--space-2) 0;
+    }
+    
+    /* Legacy button styles - will be updated gradually */
+    button:not([class]) {
+      height: 32px;
+      padding: 0 var(--space-4);
+      margin: var(--space-2) 0;
+      background-color: var(--work-secondary);
+      color: white;
+      font-size: var(--text-base);
+    }
+    
+    button:not([class]):hover {
+      background-color: var(--work-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(46, 125, 50, 0.25);
+    }
+    /* Section layouts */
+    .timer-section {
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--divider);
+    }
+    
+    .actions-section {
+      margin-bottom: var(--space-4);
+    }
+    
+    .secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+    
+    .tools-section {
+      margin-bottom: var(--space-3);
+    }
+    
+    .preferences-section {
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--divider);
+    }
+    
+    /* Current task card redesign - smaller */
+    .current-task-card {
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: 8px;
+      padding: var(--space-3);
+      margin: var(--space-3) 0;
+      border-left: 3px solid var(--work-primary);
+      transition: all var(--transition-base);
+      text-align: left;
+    }
+    
+    .current-task-card:hover {
+      border-color: var(--work-secondary);
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.1);
+    }
+    
     #autoRestartContainer {
-      margin: 10px 0;
+      margin: 0;
       text-align: left;
+      padding: var(--space-2);
+      background-color: var(--surface);
+      border-radius: var(--space-1);
+      border: 1px solid var(--divider);
     }
-    #loggingContainer {
-      margin: 10px 0;
-      text-align: left;
+    /* Collapsible details styling */
+    .tool-details {
+      border: 1px solid var(--divider);
+      border-radius: var(--space-2);
+      margin-bottom: var(--space-3);
+      background-color: var(--surface);
+      transition: all var(--transition-base);
     }
-    #settingsToggle {
-      width: 100%;
-      background-color: #FF9800;
-      margin-bottom: 10px;
+    
+    .tool-details:hover {
+      border-color: var(--primary-blue);
+      box-shadow: 0 2px 4px rgba(25, 118, 210, 0.1);
     }
-    #settingsToggle:hover {
-      background-color: #F57C00;
+    
+    .tool-details[open] {
+      border-color: var(--primary-blue);
     }
-    #editSettingsBtn {
-      background-color: #FF9800;
-      margin-bottom: 10px;
+    
+    .tool-details[open] .tool-summary {
+      background-color: var(--background);
+      border-bottom: 1px solid var(--divider);
     }
-    #editSettingsBtn:hover {
-      background-color: #F57C00;
+    
+    .tool-summary {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: var(--text-base);
+      color: var(--text-primary);
+      background-color: transparent;
+      border: none;
+      list-style: none;
+      transition: all var(--transition-fast);
     }
-    #settingsContainer {
-      margin: 10px 0;
-      text-align: left;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      background-color: #f9f9f9;
+    
+    .tool-summary:hover {
+      background-color: var(--background);
     }
-    #settingsContainer.hidden {
+    
+    .tool-summary::-webkit-details-marker {
       display: none;
+    }
+    
+    .summary-icon {
+      width: 12px;
+      height: 12px;
+      border-right: 2px solid var(--primary-blue);
+      border-bottom: 2px solid var(--primary-blue);
+      transform: rotate(-45deg);
+      transition: transform var(--transition-fast);
+      display: inline-block;
+      margin-right: var(--space-1);
+    }
+    
+    .tool-details[open] .summary-icon {
+      transform: rotate(45deg);
+    }
+    
+    .summary-text {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .tool-content {
+      padding: var(--space-3);
+      border-top: 1px solid var(--divider);
+      background-color: var(--background);
+    }
+    
+    /* View tasks button styling */
+    .view-tasks-btn {
+      background-color: var(--success-green);
+      margin-top: var(--space-3);
+      color: white;
+    }
+    
+    .view-tasks-btn:hover {
+      background-color: #2E7D32;
+      transform: translateY(-1px);
+    }
+    
+    #loggingContainer {
+      margin: var(--space-4) 0;
+      text-align: left;
+    }
+    /* Settings toggle buttons - styles moved to .btn-tool above */
+    #settingsContainer {
+      margin: 0;
+      text-align: left;
+      padding: 0;
+    }
+    
+    #settingsContainer button {
+      height: 32px;
+      font-size: var(--text-sm);
+      margin: var(--space-2) 0;
     }
     .hidden {
       display: none;
@@ -73,179 +286,334 @@
       opacity: 0.5;
       pointer-events: none;
     }
+    /* Form inputs */
     input[type="text"], input[type="password"] {
-      width: 95%;
-      padding: 5px;
-      margin: 5px 0;
-      border: 1px solid #ddd;
-      border-radius: 3px;
+      width: calc(100% - var(--space-4));
+      padding: var(--space-3);
+      margin: var(--space-2) 0;
+      border: 1px solid var(--divider);
+      border-radius: var(--space-2);
+      font-size: var(--text-sm);
+      font-family: inherit;
+      transition: border-color var(--transition-fast);
     }
+    
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+    
     label {
-      font-weight: bold;
-      font-size: 12px;
+      font-weight: 600;
+      font-size: var(--text-sm);
       display: block;
-      margin-top: 10px;
+      margin-top: var(--space-4);
+      margin-bottom: var(--space-1);
+      color: var(--text-primary);
     }
+    
     .checkbox-label {
-      font-weight: normal;
-      font-size: 14px;
-      margin-top: 5px;
+      font-weight: 400;
+      font-size: var(--text-base);
+      margin-top: var(--space-2);
     }
     #saveSettingsBtn {
-      background-color: #2196F3;
-      margin-top: 10px;
+      background-color: var(--primary-blue);
+      margin-top: var(--space-4);
+      color: white;
     }
+    
     #saveSettingsBtn:hover {
-      background-color: #1976D2;
+      background-color: #1565C0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(25, 118, 210, 0.25);
     }
     #statusMessage {
-      font-size: 11px;
-      margin-top: 5px;
+      font-size: var(--text-xs);
+      margin-top: var(--space-2);
       text-align: center;
+      padding: var(--space-2);
+      border-radius: var(--space-1);
+      transition: all var(--transition-fast);
     }
-    #taskManagerBtn {
-      background-color: #9C27B0;
-      margin-bottom: 10px;
-    }
-    #taskManagerBtn:hover {
-      background-color: #7B1FA2;
-    }
+    /* Task manager button - styles moved to .btn-tool above */
     #taskConfigContainer {
-      margin: 10px 0;
+      margin: 0;
       text-align: left;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      background-color: #f9f9f9;
+      padding: 0;
     }
-    #taskConfigContainer.hidden {
-      display: none;
+    
+    #taskConfigContainer button {
+      height: 32px;
+      font-size: var(--text-sm);
+      margin: var(--space-2) 0;
     }
     #loadTasksBtn {
-      background-color: #9C27B0;
-      margin-top: 10px;
+      background-color: var(--purple-accent);
+      margin-top: var(--space-4);
+      color: white;
     }
+    
     #loadTasksBtn:hover {
-      background-color: #7B1FA2;
+      background-color: #6A1B9A;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(123, 31, 162, 0.25);
     }
+    
     #loadTasksBtn:disabled {
-      background-color: #ccc;
+      background-color: var(--neutral-gray);
       cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+      box-shadow: none;
     }
     #taskStatusMessage {
-      font-size: 11px;
-      margin-top: 5px;
+      font-size: var(--text-xs);
+      margin-top: var(--space-2);
       text-align: center;
+      padding: var(--space-2);
+      border-radius: var(--space-1);
     }
+    
     .loading-indicator {
       display: none;
       text-align: center;
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-top: var(--space-2);
+      padding: var(--space-2);
     }
+    
     .loading-indicator.show {
       display: block;
+      animation: pulse 1.5s ease-in-out infinite;
     }
-    .current-task {
-      margin: 10px 0;
-      padding: 8px;
-      background-color: #f0f0f0;
-      border-radius: 4px;
-      border-left: 4px solid #4CAF50;
-      cursor: default;
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
+    /* Current task styling - moved to .current-task-card above */
     #currentTaskName {
-      font-size: 12px;
-      font-weight: bold;
-      color: #333;
-      text-align: center;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: left;
       cursor: help;
+      margin: 0;
+      line-height: 1.4;
     }
+    
     #currentTaskName:hover {
-      color: #4CAF50;
+      color: var(--work-primary);
+    }
+    
+    /* Enhanced checkbox styling */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-sm);
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .checkbox-container input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
     }
     .task-tooltip {
       position: absolute;
-      background-color: #333;
-      color: white;
-      padding: 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      max-width: 200px;
+      background-color: var(--text-primary);
+      color: var(--surface);
+      padding: var(--space-3);
+      border-radius: var(--space-2);
+      font-size: var(--text-xs);
+      max-width: 240px;
       z-index: 1000;
       word-wrap: break-word;
       display: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      line-height: 1.4;
     }
+    /* Specific button colors */
     .mark-done-btn {
-      background-color: #4CAF50;
-      font-size: 12px;
+      background-color: var(--success-green);
     }
     .mark-done-btn:hover {
-      background-color: #45a049;
+      background-color: #2E7D32;
     }
     .mark-done-btn:disabled {
-      background-color: #ccc;
+      background-color: var(--neutral-gray);
       cursor: not-allowed;
+      opacity: 0.6;
     }
+    
     .break-btn {
-      background-color: #FF9800;
-      font-size: 12px;
+      background-color: var(--warning-orange);
     }
     .break-btn:hover {
-      background-color: #F57C00;
+      background-color: var(--break-primary);
     }
     .break-btn:disabled {
-      background-color: #ccc;
+      background-color: var(--neutral-gray);
       cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    /* Focus indicators for accessibility */
+    button:focus-visible, .tool-summary:focus-visible {
+      outline: 2px solid var(--primary-blue);
+      outline-offset: 2px;
+      border-radius: var(--space-1);
+    }
+    
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      .current-task-card {
+        border: 2px solid;
+      }
+      
+      button {
+        border: 2px solid transparent;
+      }
+      
+      button:hover {
+        border-color: currentColor;
+      }
+    }
+    
+    /* Smooth opening animation for details */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .tool-details[open] .tool-content {
+      animation: slideDown 0.2s ease-out;
+    }
+    
+    /* Container queries for responsive behavior */
+    @container (max-width: 260px) {
+      .secondary-actions {
+        grid-template-columns: 1fr;
+      }
+      
+      .tool-summary {
+        padding: var(--space-2) var(--space-3);
+      }
+      
+      .summary-text {
+        font-size: var(--text-sm);
+      }
+    }
+    
+    /* Print styles (hide interactive elements) */
+    @media print {
+      button, .tool-details {
+        display: none;
+      }
+      
+      .timer-section, .current-task-card {
+        break-inside: avoid;
+      }
     }
   </style>
 </head>
-<body>
-  <div id="timer">25:00</div>
-  <div id="currentTask" class="current-task">
-    <div id="currentTaskName">No task selected</div>
-  </div>
-  <button id="startBtn">Start</button>
-  <button id="resetBtn">Reset</button>
-  <button id="markDoneBtn" class="mark-done-btn">Task Complete</button>
-  <button id="forceBreakBtn" class="break-btn">Force Break</button>
-  
-  <button id="taskManagerBtn">Task Manager</button>
-  <button id="settingsToggle">Setup Logging</button>
-  <button id="editSettingsBtn" class="hidden">Edit Logs Settings</button>
-  
-  <div id="settingsContainer">
-    <label class="checkbox-label">
-      <input type="checkbox" id="enableLoggingCheckbox">
-      Enable Session Logging
-    </label>
-    
-    <div id="loggingConfigSection">
-      <label for="webAppUrl">Google Sheets Web App URL:</label>
-      <input type="text" id="webAppUrl" placeholder="Paste URL from Google Apps Script">
-      <label for="secretKey">Secret Key:</label>
-      <input type="password" id="secretKey" placeholder="Your secret password">
-      <button id="saveSettingsBtn">Save Settings</button>
-      <div id="statusMessage"></div>
+<body class="popup-container">
+  <!-- Timer Section - Primary focus area -->
+  <section class="timer-section">
+    <div id="timer">25:00</div>
+    <div id="currentTask" class="current-task-card">
+      <div id="currentTaskName">No task selected</div>
     </div>
-  </div>
+  </section>
+
+  <!-- Actions Section - Main controls -->
+  <section class="actions-section">
+    <button id="startBtn" class="btn-primary">Start</button>
+    
+    <div class="secondary-actions">
+      <button id="resetBtn" class="btn-secondary">Reset</button>
+      <button id="markDoneBtn" class="btn-secondary mark-done-btn">Task Complete</button>
+      <button id="forceBreakBtn" class="btn-secondary break-btn">Force Break</button>
+    </div>
+  </section>
+
+  <!-- Tools Section - Collapsible functionality -->
+  <section class="tools-section">
+    <details id="taskManagerSection" class="tool-details">
+      <summary class="tool-summary">
+        <span class="summary-icon"></span>
+        <span class="summary-text">Tasks</span>
+      </summary>
+      <div class="tool-content">
+        <div id="taskConfigContainer">
+          <label for="sheetName">Sheet Name for Tasks:</label>
+          <input type="text" id="sheetName" placeholder="Enter sheet name (e.g., Tasks)">
+          <button id="loadTasksBtn">Load Tasks</button>
+          <div class="loading-indicator" id="loadingIndicator">Loading tasks...</div>
+          <div id="taskStatusMessage"></div>
+          <button id="viewTasksBtn" class="view-tasks-btn hidden">View Tasks</button>
+        </div>
+      </div>
+    </details>
+
+    <details id="settingsSection" class="tool-details">
+      <summary class="tool-summary">
+        <span class="summary-icon"></span>
+        <span class="summary-text">Settings</span>
+      </summary>
+      <div class="tool-content">
+        <div id="settingsContainer">
+          <label class="checkbox-container">
+            <input type="checkbox" id="enableLoggingCheckbox">
+            <span class="checkmark"></span>
+            Enable Session Logging
+          </label>
+          
+          <div id="loggingConfigSection">
+            <label for="webAppUrl">Google Sheets Web App URL:</label>
+            <input type="text" id="webAppUrl" placeholder="Paste URL from Google Apps Script">
+            <label for="secretKey">Secret Key:</label>
+            <input type="password" id="secretKey" placeholder="Your secret password">
+            <button id="saveSettingsBtn">Save Settings</button>
+            <div id="statusMessage"></div>
+          </div>
+        </div>
+      </div>
+    </details>
   
-  <div id="taskConfigContainer" class="hidden">
-    <label for="sheetName">Sheet Name for Tasks:</label>
-    <input type="text" id="sheetName" placeholder="Enter sheet name (e.g., Tasks)">
-    <button id="loadTasksBtn">Load Tasks</button>
-    <div class="loading-indicator" id="loadingIndicator">Loading tasks...</div>
-    <div id="taskStatusMessage"></div>
-    <button id="viewTasksBtn" class="hidden" style="background-color: #4CAF50; margin-top: 10px;">View Tasks</button>
-  </div>
-  
-  <div id="autoRestartContainer">
-    <label>
-      <input type="checkbox" id="autoRestartCheckbox">
-      Auto-restart sessions
-    </label>
-  </div>
+  </section>
+
+  <!-- Preferences Section - User settings -->
+  <section class="preferences-section">
+    <div id="autoRestartContainer">
+      <label class="checkbox-container">
+        <input type="checkbox" id="autoRestartCheckbox">
+        <span class="checkmark"></span>
+        Auto-restart sessions
+      </label>
+    </div>
+  </section>
   <script src="popup.js"></script>
 </body>
 </html>
