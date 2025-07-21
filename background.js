@@ -425,6 +425,20 @@ function startTimer() {
           timeLeft = 0; // Break timer finished, but still in break mode
           // Keep isBreak = true so break tab can start next session
           // Don't close break tab - user will manually start next session
+          
+          // Send updated state to break page with proper break context
+          const stateUpdate = {
+            timeLeft: timeLeft,
+            isBreak: isBreak,
+            isRunning: false,
+            autoRestart: autoRestart,
+            breakEndTime: breakEndTime,
+            task: currentTask,
+            lastSessionTask: lastSessionTask,
+            taskCompletedEarly: taskCompletedEarly
+          };
+          
+          chrome.runtime.sendMessage(stateUpdate);
         }
       }
     }

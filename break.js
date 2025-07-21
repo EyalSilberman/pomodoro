@@ -39,6 +39,8 @@ function updateButtonDisplay() {
     // Manual mode - show start next session button
     finishBreakContainer.style.display = 'none';
     startNextContainer.style.display = 'block';
+    // Start updating elapsed time immediately
+    updateElapsedTime();
   } else {
     // Auto mode or break still running - show regular button
     finishBreakContainer.style.display = 'block';
@@ -52,8 +54,15 @@ function updateElapsedTime() {
     const elapsedMinutes = Math.floor(elapsed / 60);
     const elapsedSeconds = elapsed % 60;
     
-    const elapsedDisplay = `Time since break ended: ${elapsedMinutes}:${elapsedSeconds.toString().padStart(2, '0')}`;
-    document.getElementById('elapsedTime').textContent = elapsedDisplay;
+    let timeText;
+    if (elapsedMinutes > 0) {
+      timeText = `${elapsedMinutes} minute${elapsedMinutes > 1 ? 's' : ''} and ${elapsedSeconds} second${elapsedSeconds !== 1 ? 's' : ''}`;
+    } else {
+      timeText = `${elapsedSeconds} second${elapsedSeconds !== 1 ? 's' : ''}`;
+    }
+    
+    const elapsedDisplay = `The break has ended ${timeText} ago`;
+    document.getElementById('breakEndedMessage').textContent = elapsedDisplay;
   }
 }
 
@@ -84,9 +93,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Listen for messages from background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.timeLeft !== undefined && message.isBreak) {
+  // Update all state variables first
+  if (message.timeLeft !== undefined) {
     timeLeft = message.timeLeft;
-    updateTimer();
   }
   
   if (message.task !== undefined) {
@@ -109,11 +118,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.autoRestart !== undefined) {
     autoRestart = message.autoRestart;
-    updateButtonDisplay();
   }
   
   if (message.breakEndTime !== undefined) {
     breakEndTime = message.breakEndTime;
+  }
+  
+  // Update UI after all state changes
+  if (message.timeLeft !== undefined || message.autoRestart !== undefined || message.breakEndTime !== undefined) {
+    updateTimer();
+    updateButtonDisplay();
   }
 });
 

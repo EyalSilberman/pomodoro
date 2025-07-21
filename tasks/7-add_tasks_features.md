@@ -197,3 +197,32 @@ Successfully implemented all 5 required features:
 **Impact:** Manual session start now works correctly without state mismatch errors
 
 All bugs have been resolved and the manual session functionality now works as intended.
+
+### Bug Fix 4: Improved Elapsed Time Display ✅
+**Issue:** Elapsed time wasn't clearly visible or properly formatted for users
+**Fix:** 
+- Updated `break.html:163` to add dedicated `breakEndedMessage` div under the "Start Next Session" button
+- Enhanced `updateElapsedTime()` function in `break.js:49-65` to show human-readable format: "The break has ended X minutes and Y seconds ago"
+- Added immediate elapsed time update when button display changes in `updateButtonDisplay()`
+**Impact:** Users now see a clear, prominently displayed message showing exactly how long ago their break ended
+
+### Bug Fix 5: Dynamic State Update ✅
+**Issue:** Break page didn't automatically show elapsed time when break ended - only worked when extension popup was clicked
+**Fix:**
+- Added immediate state broadcast in `background.js:429-436` when break ends in manual mode
+- Improved message handling in `break.js:95-132` to update UI whenever state changes are received
+- Ensured `updateTimer()` and `updateButtonDisplay()` are called when relevant state updates arrive
+**Impact:** Break page now automatically and dynamically shows the "Start Next Session" button and elapsed time message as soon as the break timer reaches zero
+
+### Bug Fix 6: State Synchronization Issue ✅
+**Issue:** After implementing dynamic updates, the "Not in break mode" error returned when clicking "Start Next Session"
+**Root Cause:** The manual state broadcast wasn't including all the necessary break context data
+**Fix:** Enhanced state broadcast in `background.js:430-442` to include complete break context (`task`, `lastSessionTask`, `taskCompletedEarly`) along with the timer state
+**Impact:** Manual session start now works reliably with all break context properly synchronized between background and break page
+
+## Final Status: All Features Working ✅
+- Auto-restart defaults to false
+- Task override confirmation protects existing work  
+- Manual session control works dynamically and reliably
+- Elapsed time displays automatically when break ends
+- All state synchronization issues resolved
