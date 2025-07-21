@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize auto-restart checkbox
     chrome.storage.local.get(['autoRestart'], function(result) {
-      document.getElementById('autoRestartCheckbox').checked = result.autoRestart !== false;
+      document.getElementById('autoRestartCheckbox').checked = result.autoRestart === true;
     });
     
     // Load saved settings and initialize UI
@@ -54,6 +54,29 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
+      // Check for existing unfinished tasks
+      chrome.storage.local.get(['tasks'], (result) => {
+        const existingTasks = result.tasks || [];
+        const unfinishedTasks = existingTasks.filter(task => 
+          task.status === 'pending' || task.status === 'in-progress'
+        );
+        
+        if (unfinishedTasks.length > 0) {
+          const confirmed = confirm(
+            `You have ${unfinishedTasks.length} unfinished tasks. Loading new tasks will replace them. Continue?`
+          );
+          if (!confirmed) {
+            return; // User cancelled, don't load new tasks
+          }
+        }
+        
+        // Proceed with loading tasks
+        loadTasksFromSheet(sheetName, loadingIndicator, taskStatusMessage, loadTasksBtn, viewTasksBtn);
+      });
+    });
+  
+  // Extracted task loading logic
+  async function loadTasksFromSheet(sheetName, loadingIndicator, taskStatusMessage, loadTasksBtn, viewTasksBtn) {
       // Check if Google Sheets is configured
       const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey', 'enableLogging']);
       if (!settings.webAppUrl || !settings.secretKey) {
@@ -102,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.classList.remove('show');
         loadTasksBtn.disabled = false;
       }
-    });
+    }
 
     // View tasks functionality
     document.getElementById('viewTasksBtn').addEventListener('click', () => {

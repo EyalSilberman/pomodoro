@@ -53,7 +53,7 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 ### Manual Installation (Developer Mode)
 1. Clone this repository:
    ```bash
-   git clone https://github.com/Gerontologytech/pomodoro.git
+   git clone https://github.com/EyalSilberman/pomodoro.git
    ```
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" in the top right corner

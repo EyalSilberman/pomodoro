@@ -4,33 +4,79 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Chrome extension that implements a Pomodoro Timer with the following architecture:
+This is a Chrome extension that implements a Pomodoro Timer with Google Sheets integration and task management:
 
 - **Manifest V3 Chrome Extension** - Uses service workers and modern Chrome APIs
+- **Google Sheets Integration** - Logs sessions and fetches tasks from Google Sheets via Apps Script
+- **Task Management System** - Track and manage tasks during Pomodoro sessions
 - **Core Components**: 
-  - `background.js` - Service worker handling timer logic and state management
-  - `popup.js/popup.html` - Main UI popup with timer display and controls
-  - `break.js/break.html` - Break screen that opens in a new tab
-  - `logs.js/logs.html` - Statistics and session history viewer
+  - `background.js` - Service worker handling timer logic, state management, and Google Sheets integration
+  - `popup.js/popup.html` - Main UI popup with timer display, controls, and task management
+  - `break.js/break.html` - Break screen that opens in a new tab with task completion options
+  - `tasks.js/tasks.html` - Dedicated task management interface
+  - `Code.gs` - Google Apps Script for Sheets integration
 
 ## Key Architecture Patterns
 
 ### State Management
 - Timer state is managed in the background service worker (`background.js`)
 - Communication between components uses `chrome.runtime.sendMessage()` and `chrome.runtime.onMessage`
-- Persistent storage uses Chrome's `chrome.storage.local` API
-- Main state variables: `timeLeft`, `isBreak`, `autoRestart`, `timer`
+- Persistent storage uses Chrome's `chrome.storage.local` and `chrome.storage.sync` APIs
+- Main state variables: `timeLeft`, `isBreak`, `autoRestart`, `timer`, `currentTask`, `lastSessionTask`
+
+### Task Management
+- Tasks are fetched from Google Sheets and stored locally
+- Each task has: `id`, `name`, `status` (pending/in-progress/completed), `description`, `priority`
+- Only one task can be "in-progress" at a time (current working task)
+- Task completion can happen during work sessions or breaks
+- Task transitions: pending → in-progress → completed
+
+### Google Sheets Integration
+- Uses Google Apps Script (`Code.gs`) as a web app endpoint
+- Authenticates via secret key stored in `chrome.storage.sync`
+- Functions: `logSession()` for session logging, `fetchTasks()` for task retrieval
+- Supports multiple sheet names for different task lists
+- Logging can be enabled/disabled via settings
 
 ### Timer Flow
-1. Work session (25 minutes) → Break session (5 minutes) → repeat
+1. Work session (25 minutes) with assigned task → Break session (5 minutes) → repeat
 2. Break screen automatically opens in new tab when break starts
-3. Auto-restart functionality can be toggled by user
-4. Sessions are logged with timestamps and completion status
+3. During breaks, users can mark tasks complete or continue with current task
+4. Auto-restart functionality can be toggled by user
+5. All sessions are logged with task information
 
-### UI Components
-- **Popup**: Primary interface with timer display, start/pause/reset buttons
-- **Break Tab**: Red-themed countdown display that auto-closes
-- **Logs Tab**: Statistics dashboard with CSV export functionality
+## File Structure
+
+```
+├── manifest.json          # Extension configuration
+├── background.js           # Service worker (timer logic, Google Sheets integration)
+├── popup.html/popup.js     # Main popup interface with task management
+├── break.html/break.js     # Break screen with task completion options
+├── tasks.html/tasks.js     # Dedicated task management interface
+├── Code.gs                 # Google Apps Script for Sheets integration
+├── icons/                  # Extension icons
+└── tasks/                  # Task documentation folder
+```
+
+## Data Storage
+
+### Chrome Local Storage (`chrome.storage.local`)
+- `tasks` - Array of task objects with id, name, status, description, priority
+- `taskSheetName` - Name of the Google Sheet containing tasks
+- `autoRestart` - Boolean setting for automatic session restart
+
+### Chrome Sync Storage (`chrome.storage.sync`)
+- `webAppUrl` - Google Apps Script web app URL for Sheets integration
+- `secretKey` - Authentication key for Google Sheets access
+- `enableLogging` - Boolean to enable/disable session logging
+
+## Google Sheets Structure
+
+### Session Log Sheet
+Expected columns: Date, Start Time, End Time, Type, Duration (min), Completed, Task
+
+### Task Sheet
+Expected columns: Task Name, Description, Priority, Status (optional)
 
 ## Development Commands
 
@@ -41,39 +87,36 @@ Since this is a Chrome extension, there are no build commands or package.json. D
 3. **Debug**: Use Chrome DevTools for each component:
    - Popup: Right-click extension icon → Inspect popup
    - Background: Extensions page → Inspect views: service worker
-   - Break/Logs tabs: Standard F12 DevTools
-
-## File Structure
-
-```
-├── manifest.json          # Extension configuration
-├── background.js           # Service worker (timer logic)
-├── popup.html/popup.js     # Main popup interface
-├── break.html/break.js     # Break screen
-├── logs.html/logs.js       # Session statistics
-└── icons/                  # Extension icons
-```
-
-## Data Storage
-
-The extension uses Chrome's local storage for:
-- `sessionLogs` - Array of session objects with start/end times, type, duration, completion status
-- `autoRestart` - Boolean setting for automatic session restart
-
-## Common Tasks
-
-- **Adding new features**: Most logic goes in `background.js` for timer functionality, `popup.js` for UI controls
-- **Styling changes**: Inline CSS in respective HTML files
-- **Storage changes**: Use `chrome.storage.local` API consistently
-- **Testing**: Load extension in Chrome and test all user flows (work → break → work cycle)
+   - Break/Tasks tabs: Standard F12 DevTools
+4. **Google Sheets Setup**: Deploy `Code.gs` as web app and configure URL/secret in extension
 
 ## Chrome Extension APIs Used
 
 - `chrome.runtime` - Message passing between components
-- `chrome.storage.local` - Data persistence
+- `chrome.storage.local` / `chrome.storage.sync` - Data persistence and settings
 - `chrome.action` - Badge updates and popup
-- `chrome.tabs` - Creating/managing break tab
+- `chrome.tabs` - Creating/managing break and task tabs
 - `chrome.alarms` - Not currently used but available for future timer improvements
+
+## Common Integration Patterns
+
+### Message Passing Commands
+- `getState` - Get current timer and task state
+- `getTasks` / `loadTasks` - Task management operations
+- `updateTaskStatus` / `setCurrentTask` - Task state updates
+- `markTaskComplete` - Complete current task and advance to next
+- `startTimer` / `pauseTimer` / `resetTimer` - Timer controls
+
+### Task Status Flow
+```
+pending → in-progress (becomes currentTask) → completed
+```
+
+### Session Lifecycle
+1. Start work session with current task
+2. Timer runs, logs session on completion/pause/reset
+3. On work session end, enter break with task completion options
+4. Break ends, return to work with next task or continue current
 
 # ⚠️ MANDATORY WORKFLOW - FOLLOW EXACTLY ⚠️
 

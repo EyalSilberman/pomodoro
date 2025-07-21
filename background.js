@@ -1,12 +1,13 @@
 let timer;
 let timeLeft;
 let isBreak = false;
-let autoRestart = true;
+let autoRestart = false;
 let sessionStartTime;
 let sessionInitialTime;
 let currentTask = null;
 let lastSessionTask = null;
 let taskCompletedEarly = false;
+let breakEndTime = null; // Track when break ended for countdown
 
 // Initialize current task from storage on startup
 chrome.storage.local.get(['tasks'], (result) => {
@@ -169,6 +170,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         response.task = currentTask;
       }
       response.taskCompletedEarly = taskCompletedEarly;
+      response.autoRestart = autoRestart;
+      response.breakEndTime = breakEndTime;
     }
     
     chrome.runtime.sendMessage(response);
@@ -300,6 +303,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: false, error: 'Not in break mode' });
     }
     return true; // Keep message channel open for async response
+  } else if (message.command === 'startNextSession') {
+    // Start next work session from break page
+    if (isBreak) {
+      clearInterval(timer);
+      timer = undefined;
+      
+      // End break session
+      isBreak = false;
+      timeLeft = 1500; // 25 minutes
+      sessionStartTime = null;
+      taskCompletedEarly = false; // Reset completion flag
+      lastSessionTask = null; // Reset last session task
+      breakEndTime = null; // Reset break end time
+      
+      // Close break tab
+      chrome.tabs.query({ url: chrome.runtime.getURL("break.html") }, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.remove(tab.id));
+      });
+      
+      // Start next work session
+      startTimer();
+      
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: 'Not in break mode' });
+    }
+    return true; // Keep message channel open for async response
   }
 });
 
@@ -374,23 +404,28 @@ function startTimer() {
         startTimer(); // Start break timer
       } else {
         // Break ended
-        isBreak = false;
-        timeLeft = 1500; // 25 minutes
-        sessionStartTime = null; // Reset for next session
-        taskCompletedEarly = false; // Reset completion flag
-        lastSessionTask = null; // Reset last session task
-        
-        // Close break tab
-        chrome.tabs.query({ url: chrome.runtime.getURL("break.html") }, (tabs) => {
-          tabs.forEach(tab => chrome.tabs.remove(tab.id));
+        if (autoRestart) {
+          // Auto mode - end break immediately and start work
+          isBreak = false;
+          timeLeft = 1500; // 25 minutes
+          sessionStartTime = null; // Reset for next session
+          taskCompletedEarly = false; // Reset completion flag
+          lastSessionTask = null; // Reset last session task
           
-          // Auto-restart new work session if enabled
-          if (autoRestart) {
+          // Close break tab and start immediately
+          chrome.tabs.query({ url: chrome.runtime.getURL("break.html") }, (tabs) => {
+            tabs.forEach(tab => chrome.tabs.remove(tab.id));
             setTimeout(() => {
               startTimer();
             }, 500);
-          }
-        });
+          });
+        } else {
+          // Manual restart mode - stay in break state until user starts next session
+          breakEndTime = Date.now();
+          timeLeft = 0; // Break timer finished, but still in break mode
+          // Keep isBreak = true so break tab can start next session
+          // Don't close break tab - user will manually start next session
+        }
       }
     }
   }, 1000);
@@ -430,6 +465,7 @@ function resetTimer() {
   timeLeft = 1500;
   taskCompletedEarly = false; // Reset completion flag
   lastSessionTask = null; // Reset last session task
+  breakEndTime = null; // Reset break end time
   updateTimerDisplay(timeLeft);
 }
 

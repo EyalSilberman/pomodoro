@@ -3,15 +3,57 @@ let currentTask = null;
 let lastSessionTask = null;
 let allTasks = [];
 let taskCompletedEarly = false;
+let autoRestart = true;
+let breakEndTime = null;
 
 function updateTimer() {
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  document.getElementById('breakTimer').textContent = 
-    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  if (timeLeft > 0) {
+    // Break is still running - show normal countdown
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    document.getElementById('breakTimer').textContent = 
+      `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  } else if (breakEndTime && !autoRestart) {
+    // Break ended in manual mode - show elapsed time instead of 00:00
+    const elapsed = Math.floor((Date.now() - breakEndTime) / 1000);
+    const elapsedMinutes = Math.floor(elapsed / 60);
+    const elapsedSeconds = elapsed % 60;
+    document.getElementById('breakTimer').textContent = 
+      `+${elapsedMinutes.toString().padStart(2, '0')}:${elapsedSeconds.toString().padStart(2, '0')}`;
+  } else {
+    // Default fallback
+    document.getElementById('breakTimer').textContent = '00:00';
+  }
   
   if (timeLeft <= 0) {
-    window.close();
+    // Break time ended - show appropriate button based on auto-restart setting
+    updateButtonDisplay();
+  }
+}
+
+function updateButtonDisplay() {
+  const finishBreakContainer = document.getElementById('finishBreakContainer');
+  const startNextContainer = document.getElementById('startNextContainer');
+  
+  if (timeLeft <= 0 && !autoRestart) {
+    // Manual mode - show start next session button
+    finishBreakContainer.style.display = 'none';
+    startNextContainer.style.display = 'block';
+  } else {
+    // Auto mode or break still running - show regular button
+    finishBreakContainer.style.display = 'block';
+    startNextContainer.style.display = 'none';
+  }
+}
+
+function updateElapsedTime() {
+  if (breakEndTime && timeLeft <= 0 && !autoRestart) {
+    const elapsed = Math.floor((Date.now() - breakEndTime) / 1000);
+    const elapsedMinutes = Math.floor(elapsed / 60);
+    const elapsedSeconds = elapsed % 60;
+    
+    const elapsedDisplay = `Time since break ended: ${elapsedMinutes}:${elapsedSeconds.toString().padStart(2, '0')}`;
+    document.getElementById('elapsedTime').textContent = elapsedDisplay;
   }
 }
 
@@ -35,6 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Add event listener for finish break button
   document.getElementById('finishBreakBtn').addEventListener('click', finishBreak);
+  
+  // Add event listener for start next session button
+  document.getElementById('startNextBtn').addEventListener('click', startNextSession);
 });
 
 // Listen for messages from background
@@ -60,6 +105,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.taskCompletedEarly !== undefined) {
     taskCompletedEarly = message.taskCompletedEarly;
     displayCurrentTask();
+  }
+  
+  if (message.autoRestart !== undefined) {
+    autoRestart = message.autoRestart;
+    updateButtonDisplay();
+  }
+  
+  if (message.breakEndTime !== undefined) {
+    breakEndTime = message.breakEndTime;
   }
 });
 
@@ -249,5 +303,22 @@ function finishBreak() {
   });
 }
 
+// Start next session (manual mode)
+function startNextSession() {
+  chrome.runtime.sendMessage({ command: 'startNextSession' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error starting next session:', chrome.runtime.lastError.message);
+    } else if (response && response.success) {
+      console.log('Next session started successfully');
+      // Break tab will be closed by background script
+    } else {
+      console.error('Failed to start next session:', response ? response.error : 'No response');
+    }
+  });
+}
+
 // Update timer display every second
-setInterval(updateTimer, 1000);
+setInterval(() => {
+  updateTimer();
+  updateElapsedTime();
+}, 1000);
