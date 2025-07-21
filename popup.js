@@ -2,9 +2,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get initial state
     chrome.runtime.sendMessage({ command: 'getState' });
     
+    // Initialize current task display
+    updateCurrentTaskDisplay();
+    
+    // Check if tasks are already loaded and show View Tasks button if they exist
+    checkAndShowViewTasksButton();
+    
     // Initialize auto-restart checkbox
     chrome.storage.local.get(['autoRestart'], function(result) {
-      document.getElementById('autoRestartCheckbox').checked = result.autoRestart !== false;
+      document.getElementById('autoRestartCheckbox').checked = result.autoRestart === true;
     });
     
     // Load saved settings and initialize UI
@@ -25,6 +31,105 @@ document.addEventListener('DOMContentLoaded', function() {
       updateLoggingConfigVisibility();
       updateSettingsVisibility();
       updateLoggingConfigState();
+    });
+    
+    // Task Manager functionality
+    document.getElementById('taskManagerBtn').addEventListener('click', () => {
+      const taskConfigContainer = document.getElementById('taskConfigContainer');
+      taskConfigContainer.classList.toggle('hidden');
+    });
+
+    // Load tasks functionality
+    document.getElementById('loadTasksBtn').addEventListener('click', async () => {
+      const sheetName = document.getElementById('sheetName').value.trim();
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const taskStatusMessage = document.getElementById('taskStatusMessage');
+      const loadTasksBtn = document.getElementById('loadTasksBtn');
+      const viewTasksBtn = document.getElementById('viewTasksBtn');
+      
+      if (!sheetName) {
+        taskStatusMessage.textContent = 'Please enter a sheet name.';
+        taskStatusMessage.style.color = '#FF4444';
+        setTimeout(() => taskStatusMessage.textContent = '', 3000);
+        return;
+      }
+      
+      // Check for existing unfinished tasks
+      chrome.storage.local.get(['tasks'], (result) => {
+        const existingTasks = result.tasks || [];
+        const unfinishedTasks = existingTasks.filter(task => 
+          task.status === 'pending' || task.status === 'in-progress'
+        );
+        
+        if (unfinishedTasks.length > 0) {
+          const confirmed = confirm(
+            `You have ${unfinishedTasks.length} unfinished tasks. Loading new tasks will replace them. Continue?`
+          );
+          if (!confirmed) {
+            return; // User cancelled, don't load new tasks
+          }
+        }
+        
+        // Proceed with loading tasks
+        loadTasksFromSheet(sheetName, loadingIndicator, taskStatusMessage, loadTasksBtn, viewTasksBtn);
+      });
+    });
+  
+  // Extracted task loading logic
+  async function loadTasksFromSheet(sheetName, loadingIndicator, taskStatusMessage, loadTasksBtn, viewTasksBtn) {
+      // Check if Google Sheets is configured
+      const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey', 'enableLogging']);
+      if (!settings.webAppUrl || !settings.secretKey) {
+        taskStatusMessage.textContent = 'Please configure Google Sheets settings first.';
+        taskStatusMessage.style.color = '#FF4444';
+        setTimeout(() => taskStatusMessage.textContent = '', 3000);
+        return;
+      }
+      
+      // Show loading indicator
+      loadingIndicator.classList.add('show');
+      loadTasksBtn.disabled = true;
+      taskStatusMessage.textContent = '';
+      
+      try {
+        // Send message to background script to load tasks
+        chrome.runtime.sendMessage({ 
+          command: 'loadTasks', 
+          sheetName: sheetName 
+        }, (result) => {
+          if (result.success) {
+            taskStatusMessage.textContent = `${result.tasks.length} tasks loaded successfully!`;
+            taskStatusMessage.style.color = '#4CAF50';
+            viewTasksBtn.classList.remove('hidden');
+            
+            // Update current task display after loading tasks
+            updateCurrentTaskDisplay();
+            
+            setTimeout(() => taskStatusMessage.textContent = '', 3000);
+          } else {
+            taskStatusMessage.textContent = result.error || 'Failed to load tasks.';
+            taskStatusMessage.style.color = '#FF4444';
+            setTimeout(() => taskStatusMessage.textContent = '', 3000);
+          }
+          
+          loadingIndicator.classList.remove('show');
+          loadTasksBtn.disabled = false;
+        });
+        
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        taskStatusMessage.textContent = 'Error loading tasks. Check console for details.';
+        taskStatusMessage.style.color = '#FF4444';
+        setTimeout(() => taskStatusMessage.textContent = '', 3000);
+        
+        loadingIndicator.classList.remove('show');
+        loadTasksBtn.disabled = false;
+      }
+    }
+
+    // View tasks functionality
+    document.getElementById('viewTasksBtn').addEventListener('click', () => {
+      chrome.tabs.create({ url: 'tasks.html' });
     });
   });
   
@@ -67,6 +172,40 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('resetBtn').addEventListener('click', () => {
     chrome.runtime.sendMessage({ command: 'resetTimer' });
     document.getElementById('startBtn').textContent = 'Start';
+  });
+  
+  // Mark Done button
+  document.getElementById('markDoneBtn').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ command: 'markTaskComplete' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error marking task complete:', chrome.runtime.lastError.message);
+        return;
+      }
+      
+      if (response && response.success) {
+        console.log('Task marked as complete successfully');
+        // Update current task display to show next task
+        updateCurrentTaskDisplay();
+        
+        // Force break to start after marking task complete
+        setTimeout(() => {
+          chrome.runtime.sendMessage({ command: 'forceBreak' }, (breakResponse) => {
+            if (chrome.runtime.lastError) {
+              console.error('Error forcing break:', chrome.runtime.lastError.message);
+            } else if (breakResponse && breakResponse.success) {
+              console.log('Break started successfully');
+            }
+          });
+        }, 500);
+      } else {
+        console.error('Failed to mark task complete:', response ? response.error : 'No response');
+      }
+    });
+  });
+  
+  // Force Break button (for testing)
+  document.getElementById('forceBreakBtn').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ command: 'forceBreak' });
   });
   
   
@@ -179,6 +318,63 @@ function updateSettingsVisibility() {
       settingsToggle.classList.remove('hidden');
       editSettingsBtn.classList.add('hidden');
       settingsContainer.classList.remove('hidden');
+    }
+  });
+}
+
+// Update current task display
+function updateCurrentTaskDisplay() {
+  chrome.runtime.sendMessage({ command: 'getCurrentTask' }, (response) => {
+    const currentTaskName = document.getElementById('currentTaskName');
+    const markDoneBtn = document.getElementById('markDoneBtn');
+    
+    if (response && response.task) {
+      currentTaskName.textContent = response.task.name;
+      currentTaskName.setAttribute('data-description', response.task.description || '');
+      setupTaskHover();
+      markDoneBtn.disabled = false;
+    } else {
+      currentTaskName.textContent = 'No task selected';
+      currentTaskName.removeAttribute('data-description');
+      markDoneBtn.disabled = true;
+    }
+  });
+}
+
+// Setup hover functionality for current task
+function setupTaskHover() {
+  const currentTaskName = document.getElementById('currentTaskName');
+  const description = currentTaskName.getAttribute('data-description');
+  
+  if (!description) return;
+  
+  let tooltip = document.querySelector('.task-tooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.className = 'task-tooltip';
+    document.body.appendChild(tooltip);
+  }
+  
+  currentTaskName.addEventListener('mouseenter', (e) => {
+    tooltip.textContent = description;
+    tooltip.style.display = 'block';
+    
+    const rect = currentTaskName.getBoundingClientRect();
+    tooltip.style.left = '10px';
+    tooltip.style.top = (rect.bottom + 5) + 'px';
+  });
+  
+  currentTaskName.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none';
+  });
+}
+
+// Check if tasks are already loaded and show View Tasks button
+function checkAndShowViewTasksButton() {
+  chrome.storage.local.get(['tasks'], (result) => {
+    const viewTasksBtn = document.getElementById('viewTasksBtn');
+    if (result.tasks && result.tasks.length > 0) {
+      viewTasksBtn.classList.remove('hidden');
     }
   });
 }

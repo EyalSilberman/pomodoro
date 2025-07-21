@@ -22,6 +22,103 @@
     }
     #breakTimer {
       font-size: 36px;
+      margin-bottom: 30px;
+    }
+    .task-info {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      max-width: 600px;
+    }
+    .task-info h2, .task-info h3 {
+      margin: 0 0 15px 0;
+      font-size: 24px;
+    }
+    .task-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .task-description {
+      font-size: 16px;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+    .task-question, .continue-options {
+      margin: 20px 0;
+    }
+    .task-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .task-btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .finished-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .finished-btn:hover {
+      background-color: #45a049;
+    }
+    .not-finished-btn {
+      background-color: #ff8800;
+      color: white;
+    }
+    .not-finished-btn:hover {
+      background-color: #e67700;
+    }
+    .continue-btn {
+      background-color: #2196F3;
+      color: white;
+    }
+    .continue-btn:hover {
+      background-color: #1976D2;
+    }
+    .next-btn {
+      background-color: #9C27B0;
+      color: white;
+    }
+    .next-btn:hover {
+      background-color: #7B1FA2;
+    }
+    .next-task-info {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+    }
+    .next-task-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .finish-break-container {
+      margin-top: 30px;
+      padding: 20px;
+    }
+    .finish-break-btn {
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      min-width: 300px;
+    }
+    .finish-break-btn:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
@@ -29,6 +126,42 @@
   <div class="break-container">
     <h1>BREAK TIME!</h1>
     <div id="breakTimer">5:00</div>
+    
+    <div id="taskInfo" class="task-info" style="display: none;">
+      <h2>Last Session Task:</h2>
+      <div id="taskName" class="task-name"></div>
+      <div id="taskDescription" class="task-description"></div>
+      
+      <div class="task-question">
+        <h3>Did you finish this task?</h3>
+        <div class="task-buttons">
+          <button id="taskFinished" class="task-btn finished-btn">Yes, Task Complete</button>
+          <button id="taskNotFinished" class="task-btn not-finished-btn">No, Need More Time</button>
+        </div>
+      </div>
+      
+      <div id="continueOptions" class="continue-options" style="display: none;">
+        <h3>What would you like to do next?</h3>
+        <div class="task-buttons">
+          <button id="continueTask" class="task-btn continue-btn">Continue This Task</button>
+          <button id="moveToNext" class="task-btn next-btn">Move to Next Task</button>
+        </div>
+      </div>
+      
+      <div id="nextTaskInfo" class="next-task-info" style="display: none;">
+        <h3>Next session you will work on:</h3>
+        <div id="nextTaskName" class="next-task-name"></div>
+      </div>
+    </div>
+    
+    <div id="finishBreakContainer" class="finish-break-container">
+      <button id="finishBreakBtn" class="finish-break-btn">Start Next Work Session Now</button>
+    </div>
+    
+    <div id="startNextContainer" class="finish-break-container" style="display: none;">
+      <button id="startNextBtn" class="finish-break-btn">Start Next Session</button>
+      <div id="breakEndedMessage" style="margin-top: 15px; font-size: 16px; color: white; font-weight: bold;"></div>
+    </div>
   </div>
   <script src="break.js"></script>
 </body>

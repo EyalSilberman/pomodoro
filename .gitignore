@@ -1,1 +1,4 @@
 .DS-Store
+.env
+/tasks
+CLAUDE.md

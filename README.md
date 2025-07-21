@@ -25,12 +25,23 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 - 🎨 Red-themed break interface
 - 🔄 Auto-closing break tab
 - ⚙️ Configurable auto-restart option
+- 📝 **Interactive task management during breaks**
+- ✅ **Task completion tracking and status updates**
+- 🔄 **Smart task progression and workflow management**
 
 ### Analytics & Logging
 - 📊 Google Sheets integration for session logging
 - 📈 Real-time data export to your personal spreadsheet
 - 🔐 Private and secure - data stays in your Google account
 - 📅 Comprehensive session tracking with timestamps
+
+### Task Management
+- 📝 Load tasks from Google Sheets
+- ✅ Track task progress with visual status indicators
+- 📊 Task statistics dashboard (total, completed, pending)
+- 🔄 Interactive status management (pending → in-progress → completed)
+- 🔃 Refresh tasks while preserving progress
+- 💾 Offline task access with local storage
 
 ## Installation
 
@@ -42,7 +53,7 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 ### Manual Installation (Developer Mode)
 1. Clone this repository:
    ```bash
-   git clone https://github.com/Gerontologytech/pomodoro.git
+   git clone https://github.com/EyalSilberman/pomodoro.git
    ```
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" in the top right corner
@@ -61,29 +72,42 @@ A feature-rich Pomodoro Timer Chrome extension that helps you stay productive us
 - ✅ **No External Services**: No data passes through our servers or any third-party
 - ✅ **Open Source**: All code is visible and auditable in this repository
 
-The permissions requested are only for YOUR script to write to YOUR spreadsheet - exactly like any other Google Sheets add-on you might use.
+The permissions requested are only for YOUR script to read/write to YOUR spreadsheet - exactly like any other Google Sheets add-on you might use.
 
 ### How to Set Up Google Sheets Integration
 
 Follow these steps to connect the extension to your personal Google Sheet. This process gives you full control over your data and script.
 
-**Part A: Create Your Google Sheet**
+**Part A: Create Your Google Sheets**
 
 1. **Create a New Google Sheet**: Go to [sheets.google.com](https://sheets.google.com) and create a new spreadsheet.
-2. **Name Your Sheet**: Rename it to "Pomodoro Logs" (or any name you prefer).
-3. **Set Up Headers**: In the first row, add these exact headers:
+2. **Name Your Sheet**: Rename it to "Pomodoro Data" (or any name you prefer).
+3. **Set Up Session Logging Sheet**: Create a sheet tab named "Logs" with these exact headers in the first row:
 
-| A1 | B1 | C1 | D1 | E1 | F1 |
-|---|---|---|---|---|---|
-| **session date** | **session start time** | **session end time** | **session type** | **session duration** | **session completed** |
+| A1 | B1 | C1 | D1 | E1 | F1 | G1 |
+|---|---|---|---|---|---|---|
+| **session date** | **session start time** | **session end time** | **session type** | **session duration** | **session completed** | **task name** |
 
-Your sheet should look like this:
+Your "Logs" sheet should look like this:
 ```
 A1: session date          B1: session start time    C1: session end time
-D1: session type          E1: session duration       F1: session completed
+D1: session type          E1: session duration       F1: session completed    G1: task name
 ```
 
-4. **Copy the Sheet ID**: From your sheet's URL (`https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`), copy the SHEET_ID part.
+4. **Set Up Task Management Sheet** *(Optional)*: Create another sheet tab named "Tasks" with these headers in the first row:
+
+| A1 | B1 |
+|---|---|
+| **task** | **description** |
+
+Your "Tasks" sheet should look like this:
+```
+A1: task                   B1: description
+A2: Complete project report    B2: Write quarterly summary
+A3: Review meeting notes       B3: Go through yesterday's notes
+```
+
+5. **Copy the Sheet ID**: From your sheet's URL (`https://docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`), copy the SHEET_ID part.
 
 **Part B: Create and Deploy the Google Apps Script**
 
@@ -124,9 +148,17 @@ D1: session type          E1: session duration       F1: session completed
    - Click the extension icon
    - Press "Start" to begin a 25-minute work session
    - The timer will be visible in both the popup and extension icon
+   - **NEW**: Use "Mark Done" button to complete current task before timer ends
+   - **NEW**: Use "Break (Test)" button to force break mode for testing
 
-2. **During Breaks**
+2. **During Breaks** *(Enhanced with Task Management)*
    - A new tab will automatically open when break time starts
+   - **NEW**: See the task you worked on during the last session
+   - **NEW**: Answer "Did you finish this task?" to update task status
+   - **NEW**: For unfinished tasks, choose to continue or move to the next task
+   - **NEW**: Preview what task you'll work on in the next session
+   - **NEW**: Click "I finished my break, let's start the next session" to end break early
+   - **NEW**: When task marked complete early, break page shows simplified view with next task
    - The break tab will close automatically after 5 minutes
    - If auto-restart is enabled, a new work session will begin
 
@@ -134,12 +166,36 @@ D1: session type          E1: session duration       F1: session completed
    - Enable/disable logging anytime with the checkbox in settings
    - When enabled, sessions are automatically logged to your Google Sheet
    - Both completed and incomplete sessions are tracked
-   - Data logged: Date, Start Time, End Time, Session Type, Duration (minutes), Completion Status
+   - Data logged: Date, Start Time, End Time, Session Type, Duration (minutes), Completion Status, Task Name
 
-4. **Customization**
+4. **Task Management** *(Enhanced Feature)*
+   - Click the "Task Manager" button in the extension popup
+   - Enter your Google Sheets task tab name (e.g., "Tasks")
+   - Click "Load Tasks" to import your tasks from the spreadsheet
+   - Click "View Tasks" to open the task management interface
+   - Track progress by cycling through: Pending → In Progress → Completed
+   - Refresh tasks anytime while preserving your progress
+   
+   **Enhanced Break Page Task Management:**
+   - During breaks, the system shows the task from your last work session
+   - Interactive buttons let you mark tasks as completed or continue working on them
+   - Smart workflow: If you mark a task complete, the next pending task becomes active
+   - If you're not done, choose to continue the same task or move to the next one
+   - See a preview of your next work session's task before the break ends
+   - **NEW**: When task completed early via popup, break shows simplified view
+   - **NEW**: Break control - end break early and start next session immediately
+
+5. **Enhanced Workflow Controls** *(New Features)*
+   - **Early Task Completion**: Mark tasks as done before session ends via popup
+   - **Break Control**: End breaks early and immediately start next work session  
+   - **Testing Mode**: Force break page to open for testing workflows
+   - **Smart Task Progression**: Automatically advances to next pending task when current is completed
+
+6. **Customization**
    - Toggle auto-restart functionality
    - Enable/disable session logging
    - Edit Google Sheets integration settings anytime
+   - Manage tasks from your Google Sheets
 
 ## Project Structure
 
@@ -151,6 +207,8 @@ pomodoro-chrome-extension/
 ├── background.js
 ├── break.html
 ├── break.js
+├── tasks.html           # Task management interface
+├── tasks.js             # Task management logic
 ├── Code.gs              # Google Apps Script for users
 ├── icons/
 │   ├── icon16.png
@@ -174,9 +232,25 @@ Want to contribute? Great! Here's how:
 
 ## Troubleshooting
 
+### Basic Issues
 - **Timer not showing in icon?** Make sure you have the latest Chrome version
 - **Break tab not opening?** Check if pop-ups are allowed for the extension
 - **Stats not saving?** Verify that storage permission is granted
+
+### Task Management Issues
+- **"Task Complete" button disabled?** Make sure you have loaded tasks and have an active task selected
+- **Tasks not updating?** Check your Google Sheets configuration and try refreshing tasks
+- **Break page showing wrong task?** This is now fixed - break page shows the actual task worked on, not the next task
+
+### Advanced Workflow Issues
+- **Task status not persisting?** Make sure to wait for task operations to complete before starting new sessions
+- **Break page not showing after "Force Break"?** Check that pop-ups are enabled and try refreshing the extension
+- **Console errors?** Open Chrome DevTools to check for error messages - most operations now have detailed logging
+
+### Performance Tips
+- **For best results**: Allow task completion operations to finish before clicking other buttons
+- **If tasks seem stuck**: Try reloading the extension or refreshing the task list
+- **For debugging**: Open Chrome DevTools console to see detailed operation logs
 
 ## License
 
@@ -219,9 +293,20 @@ See [Contributing Guidelines](CONTRIBUTING.md) for more information.
 - [ ] Customizable work/break durations
 - [ ] Sound notifications
 - [ ] Dark mode support
-- [ ] Task labeling
+- [x] ~~Task management system~~ ✅ **Completed!**
+- [x] ~~Integration with Pomodoro sessions (auto-advance tasks)~~ ✅ **Completed!**
+- [x] ~~Enhanced break page with task management~~ ✅ **Completed!**
+- [x] ~~Early task completion controls~~ ✅ **Completed!**
+- [x] ~~Break duration control~~ ✅ **Completed!**
+- [x] ~~Intelligent task progression~~ ✅ **Completed!**
+- [ ] Task filtering and search
+- [ ] Task time tracking and analytics
 - [ ] Integration with productivity tools
 - [ ] Mobile sync support
+- [ ] Keyboard shortcuts for task decisions
+- [ ] Task notes and comments
+- [ ] Bulk task operations
+- [ ] Task categories and tags
 
 ## Contact
 

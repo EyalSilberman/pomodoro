@@ -103,13 +103,115 @@
       margin-top: 5px;
       text-align: center;
     }
+    #taskManagerBtn {
+      background-color: #9C27B0;
+      margin-bottom: 10px;
+    }
+    #taskManagerBtn:hover {
+      background-color: #7B1FA2;
+    }
+    #taskConfigContainer {
+      margin: 10px 0;
+      text-align: left;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    #taskConfigContainer.hidden {
+      display: none;
+    }
+    #loadTasksBtn {
+      background-color: #9C27B0;
+      margin-top: 10px;
+    }
+    #loadTasksBtn:hover {
+      background-color: #7B1FA2;
+    }
+    #loadTasksBtn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #taskStatusMessage {
+      font-size: 11px;
+      margin-top: 5px;
+      text-align: center;
+    }
+    .loading-indicator {
+      display: none;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .loading-indicator.show {
+      display: block;
+    }
+    .current-task {
+      margin: 10px 0;
+      padding: 8px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      border-left: 4px solid #4CAF50;
+      cursor: default;
+    }
+    #currentTaskName {
+      font-size: 12px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      cursor: help;
+    }
+    #currentTaskName:hover {
+      color: #4CAF50;
+    }
+    .task-tooltip {
+      position: absolute;
+      background-color: #333;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      max-width: 200px;
+      z-index: 1000;
+      word-wrap: break-word;
+      display: none;
+    }
+    .mark-done-btn {
+      background-color: #4CAF50;
+      font-size: 12px;
+    }
+    .mark-done-btn:hover {
+      background-color: #45a049;
+    }
+    .mark-done-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .break-btn {
+      background-color: #FF9800;
+      font-size: 12px;
+    }
+    .break-btn:hover {
+      background-color: #F57C00;
+    }
+    .break-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
   <div id="timer">25:00</div>
+  <div id="currentTask" class="current-task">
+    <div id="currentTaskName">No task selected</div>
+  </div>
   <button id="startBtn">Start</button>
   <button id="resetBtn">Reset</button>
+  <button id="markDoneBtn" class="mark-done-btn">Task Complete</button>
+  <button id="forceBreakBtn" class="break-btn">Force Break</button>
   
+  <button id="taskManagerBtn">Task Manager</button>
   <button id="settingsToggle">Setup Logging</button>
   <button id="editSettingsBtn" class="hidden">Edit Logs Settings</button>
   
@@ -129,9 +231,18 @@
     </div>
   </div>
   
+  <div id="taskConfigContainer" class="hidden">
+    <label for="sheetName">Sheet Name for Tasks:</label>
+    <input type="text" id="sheetName" placeholder="Enter sheet name (e.g., Tasks)">
+    <button id="loadTasksBtn">Load Tasks</button>
+    <div class="loading-indicator" id="loadingIndicator">Loading tasks...</div>
+    <div id="taskStatusMessage"></div>
+    <button id="viewTasksBtn" class="hidden" style="background-color: #4CAF50; margin-top: 10px;">View Tasks</button>
+  </div>
+  
   <div id="autoRestartContainer">
     <label>
-      <input type="checkbox" id="autoRestartCheckbox" checked>
+      <input type="checkbox" id="autoRestartCheckbox">
       Auto-restart sessions
     </label>
   </div>
