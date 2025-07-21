@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
   loadTasks();
-  
-  // Refresh button functionality
-  document.getElementById('refreshBtn').addEventListener('click', refreshTasks);
 });
 
 // Load tasks from storage and display them
@@ -84,6 +81,12 @@ async function toggleTaskStatus(taskId) {
     switch (currentStatus) {
       case 'pending':
         newStatus = 'in-progress';
+        // Ensure only one task can be in-progress at a time
+        tasks.forEach((task, index) => {
+          if (index !== taskIndex && task.status === 'in-progress') {
+            task.status = 'pending';
+          }
+        });
         break;
       case 'in-progress':
         newStatus = 'completed';
@@ -99,6 +102,19 @@ async function toggleTaskStatus(taskId) {
     
     // Save updated tasks
     await chrome.storage.local.set({ tasks: tasks });
+    
+    // Notify background script about current task change
+    if (newStatus === 'in-progress') {
+      chrome.runtime.sendMessage({ 
+        command: 'setCurrentTask', 
+        task: tasks[taskIndex] 
+      });
+    } else if (currentStatus === 'in-progress') {
+      chrome.runtime.sendMessage({ 
+        command: 'setCurrentTask', 
+        task: null 
+      });
+    }
     
     // Refresh display
     displayTasks(tasks);
@@ -123,62 +139,6 @@ function getStatusButtonText(status) {
   }
 }
 
-// Refresh tasks from Google Sheets
-async function refreshTasks() {
-  try {
-    const settings = await chrome.storage.sync.get(['webAppUrl', 'secretKey']);
-    const localData = await chrome.storage.local.get(['taskSheetName']);
-    
-    if (!settings.webAppUrl || !settings.secretKey) {
-      showNoTasks('Google Sheets not configured. Please set up in the popup.');
-      return;
-    }
-    
-    if (!localData.taskSheetName) {
-      showNoTasks('No sheet name configured. Please load tasks from the popup first.');
-      return;
-    }
-    
-    // Show loading
-    document.getElementById('taskList').innerHTML = '<div class="loading">Refreshing tasks...</div>';
-    
-    const url = `${settings.webAppUrl}?secret=${encodeURIComponent(settings.secretKey)}&action=getTasks&sheetName=${encodeURIComponent(localData.taskSheetName)}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      cache: 'no-cache'
-    });
-    
-    const result = await response.json();
-    
-    if (result.status === 'success') {
-      // Preserve existing task statuses by merging with fresh data
-      const existingTasks = (await chrome.storage.local.get(['tasks'])).tasks || [];
-      const newTasks = result.tasks.map(newTask => {
-        const existingTask = existingTasks.find(existing => existing.name === newTask.name);
-        return {
-          ...newTask,
-          status: existingTask ? existingTask.status : 'pending'
-        };
-      });
-      
-      // Save updated tasks
-      await chrome.storage.local.set({ tasks: newTasks });
-      
-      // Refresh display
-      displayTasks(newTasks);
-      updateStatistics(newTasks);
-      
-    } else {
-      showNoTasks(`Error refreshing tasks: ${result.message}`);
-    }
-    
-  } catch (error) {
-    console.error('Error refreshing tasks:', error);
-    showNoTasks('Error refreshing tasks. Check console for details.');
-  }
-}
 
 // Utility function to escape HTML
 function escapeHtml(text) {

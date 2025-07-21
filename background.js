@@ -4,6 +4,16 @@ let isBreak = false;
 let autoRestart = true;
 let sessionStartTime;
 let sessionInitialTime;
+let currentTask = null;
+
+// Initialize current task from storage on startup
+chrome.storage.local.get(['tasks'], (result) => {
+  const tasks = result.tasks || [];
+  const inProgressTask = tasks.find(task => task.status === 'in-progress');
+  if (inProgressTask) {
+    currentTask = inProgressTask;
+  }
+});
 
 // Google Sheets logging function
 async function logSession(sessionType, startTime, endTime, duration, completed) {
@@ -21,13 +31,17 @@ async function logSession(sessionType, startTime, endTime, duration, completed) 
       return;
     }
     
+    // Get task name for work sessions
+    const taskName = (sessionType === 'Work' && currentTask) ? currentTask.name : 'No task';
+    
     const logData = [
       new Date(startTime).toLocaleDateString(),
       new Date(startTime).toLocaleTimeString(),
       new Date(endTime).toLocaleTimeString(),
       sessionType,
       Math.round(duration / 60), // Duration in minutes
-      completed ? 'Yes' : 'No'
+      completed ? 'Yes' : 'No',
+      taskName
     ];
     
     const response = await fetch(settings.webAppUrl, {
@@ -82,12 +96,38 @@ async function fetchTasks(sheetName) {
     const result = await response.json();
     
     if (result.status === 'success') {
+      // Initialize task statuses - ensure each task has a status and ID
+      const initializedTasks = result.tasks.map((task, index) => ({
+        ...task,
+        id: task.id || `task_${index}_${Date.now()}`,
+        status: task.status || 'pending'
+      }));
+      
+      // Ensure only one task is in-progress (first one wins if multiple)
+      let hasInProgress = false;
+      initializedTasks.forEach(task => {
+        if (task.status === 'in-progress') {
+          if (hasInProgress) {
+            task.status = 'pending';
+          } else {
+            hasInProgress = true;
+            currentTask = task;
+          }
+        }
+      });
+      
+      // If no task is in-progress, make the first task current by default
+      if (!hasInProgress && initializedTasks.length > 0) {
+        initializedTasks[0].status = 'in-progress';
+        currentTask = initializedTasks[0];
+      }
+      
       // Store tasks in local storage
       await chrome.storage.local.set({ 
-        tasks: result.tasks,
+        tasks: initializedTasks,
         taskSheetName: sheetName 
       });
-      return { success: true, tasks: result.tasks };
+      return { success: true, tasks: initializedTasks };
     } else {
       throw new Error(result.message || 'Failed to fetch tasks');
     }
@@ -143,6 +183,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
     return true; // Keep message channel open for async response
+  } else if (message.command === 'setCurrentTask') {
+    // Set current task
+    currentTask = message.task;
+    sendResponse({ success: true });
+  } else if (message.command === 'getCurrentTask') {
+    // Get current task
+    sendResponse({ task: currentTask });
   }
 });
 
@@ -175,6 +222,18 @@ function startTimer() {
   if (!sessionStartTime) {
     sessionStartTime = Date.now();
     sessionInitialTime = timeLeft;
+    
+    // For work sessions, ensure we have a current task
+    if (!isBreak && !currentTask) {
+      // Try to find an in-progress task
+      chrome.storage.local.get(['tasks'], (result) => {
+        const tasks = result.tasks || [];
+        const inProgressTask = tasks.find(task => task.status === 'in-progress');
+        if (inProgressTask) {
+          currentTask = inProgressTask;
+        }
+      });
+    }
   }
   
   updateTimerDisplay(timeLeft);

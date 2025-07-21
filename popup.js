@@ -2,6 +2,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get initial state
     chrome.runtime.sendMessage({ command: 'getState' });
     
+    // Initialize current task display
+    updateCurrentTaskDisplay();
+    
+    // Check if tasks are already loaded and show View Tasks button if they exist
+    checkAndShowViewTasksButton();
+    
     // Initialize auto-restart checkbox
     chrome.storage.local.get(['autoRestart'], function(result) {
       document.getElementById('autoRestartCheckbox').checked = result.autoRestart !== false;
@@ -72,6 +78,9 @@ document.addEventListener('DOMContentLoaded', function() {
             taskStatusMessage.textContent = `${result.tasks.length} tasks loaded successfully!`;
             taskStatusMessage.style.color = '#4CAF50';
             viewTasksBtn.classList.remove('hidden');
+            
+            // Update current task display after loading tasks
+            updateCurrentTaskDisplay();
             
             setTimeout(() => taskStatusMessage.textContent = '', 3000);
           } else {
@@ -252,6 +261,60 @@ function updateSettingsVisibility() {
       settingsToggle.classList.remove('hidden');
       editSettingsBtn.classList.add('hidden');
       settingsContainer.classList.remove('hidden');
+    }
+  });
+}
+
+// Update current task display
+function updateCurrentTaskDisplay() {
+  chrome.runtime.sendMessage({ command: 'getCurrentTask' }, (response) => {
+    const currentTaskName = document.getElementById('currentTaskName');
+    
+    if (response && response.task) {
+      currentTaskName.textContent = response.task.name;
+      currentTaskName.setAttribute('data-description', response.task.description || '');
+      setupTaskHover();
+    } else {
+      currentTaskName.textContent = 'No task selected';
+      currentTaskName.removeAttribute('data-description');
+    }
+  });
+}
+
+// Setup hover functionality for current task
+function setupTaskHover() {
+  const currentTaskName = document.getElementById('currentTaskName');
+  const description = currentTaskName.getAttribute('data-description');
+  
+  if (!description) return;
+  
+  let tooltip = document.querySelector('.task-tooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.className = 'task-tooltip';
+    document.body.appendChild(tooltip);
+  }
+  
+  currentTaskName.addEventListener('mouseenter', (e) => {
+    tooltip.textContent = description;
+    tooltip.style.display = 'block';
+    
+    const rect = currentTaskName.getBoundingClientRect();
+    tooltip.style.left = '10px';
+    tooltip.style.top = (rect.bottom + 5) + 'px';
+  });
+  
+  currentTaskName.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none';
+  });
+}
+
+// Check if tasks are already loaded and show View Tasks button
+function checkAndShowViewTasksButton() {
+  chrome.storage.local.get(['tasks'], (result) => {
+    const viewTasksBtn = document.getElementById('viewTasksBtn');
+    if (result.tasks && result.tasks.length > 0) {
+      viewTasksBtn.classList.remove('hidden');
     }
   });
 }
